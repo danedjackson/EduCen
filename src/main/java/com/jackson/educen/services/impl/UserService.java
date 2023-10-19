@@ -1,7 +1,7 @@
 package com.jackson.educen.services.impl;
 
 import com.jackson.educen.documents.UserDocument;
-import com.jackson.educen.mappers.impl.UserMapperImpl;
+import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
 import com.jackson.educen.repositories.IUserRepository;
@@ -9,15 +9,19 @@ import com.jackson.educen.services.IUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
+    private final IUserMapper userMapper;
 
-    public UserService(IUserRepository userRepository) {
+    public UserService(IUserRepository userRepository, IUserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -30,12 +34,33 @@ public class UserService implements IUserService {
                     ("Could not find user with ID " + id)
             );
         }
-        UserMapperImpl mapper = new UserMapperImpl();
 
         return new ApiResponse<>(
                 HttpStatus.OK,
-                mapper.userDocumentToUser(userDocument.get()),
+                userMapper.userDocumentToUser(userDocument.get()),
                 "Found"
+        );
+    }
+
+    @Override
+    public ApiResponse<List<User>> getAllUsersOfType(int typeId) {
+        List<UserDocument> userDocumentList = userRepository.findAllUsersGivenTypeId(typeId);
+        if(userDocumentList.isEmpty()) {
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Could not find any records for given type ID"
+            );
+        }
+        List<User> userList = new ArrayList<>();
+        userDocumentList.forEach(userDocument -> {
+            userList.add(userMapper.userDocumentToUser(userDocument));
+        });
+
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                userList,
+                "Records found for type ID: " + typeId
         );
     }
 

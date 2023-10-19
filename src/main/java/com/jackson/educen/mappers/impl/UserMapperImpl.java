@@ -3,7 +3,9 @@ package com.jackson.educen.mappers.impl;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.User;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserMapperImpl implements IUserMapper {
     public User userDocumentToUser(UserDocument userDocument) {
         User user = new User();
