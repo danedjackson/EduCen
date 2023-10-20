@@ -6,7 +6,7 @@ import com.jackson.educen.models.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserMapperImpl implements IUserMapper {
+public class UserMapper implements IUserMapper {
     public User userDocumentToUser(UserDocument userDocument) {
         User user = new User();
         user.setFirstName(userDocument.getFirstName());
