@@ -4,6 +4,7 @@ import com.jackson.educen.documents.ScoreDocument;
 import com.jackson.educen.mappers.IScoreMapper;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Score;
+import com.jackson.educen.models.ScoreRequest;
 import com.jackson.educen.repositories.IScoreRepository;
 import com.jackson.educen.services.IScoreService;
 import org.springframework.http.HttpStatus;
@@ -87,4 +88,22 @@ public class ScoreService implements IScoreService {
                 "Scores for student ID: " + id
         );
     }
+
+    @Override
+    public ApiResponse<Score> addStudentScore(ScoreRequest scoreRequest) {
+        ScoreDocument savedDocument = scoreRepository.save(scoreMapper.scoreRequestToScoreDocument(scoreRequest));
+        if(null == savedDocument.getId()) {
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    "Something went wrong attempting to add student score to database"
+            );
+        }
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                scoreMapper.scoreDocumentToScore(savedDocument),
+                "Successfully stored student score"
+        );
+    }
+
 }
