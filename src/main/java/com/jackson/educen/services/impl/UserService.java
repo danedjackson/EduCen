@@ -85,6 +85,19 @@ public class UserService implements IUserService {
 
     @Override
     public ApiResponse<User> editUserDetails(UserDTO user) {
-        return null;
+        if(!userRepository.existsById(user.getId())) {
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "No records found with given ID: " + user.getId()
+            );
+        }
+
+        UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                userMapper.userDocumentToUser(savedDocument),
+                "Successfully edited record with ID: " + savedDocument.getId()
+        );
     }
 }

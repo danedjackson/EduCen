@@ -39,6 +39,10 @@ public class UserMapper implements IUserMapper {
         }
 
         UserDocument userDocument = new UserDocument();
+
+        if(userDTO.getId() != null) {
+            userDocument.setId(userDTO.getId());
+        }
         userDocument.setFirstName(userDTO.getFirstName());
         userDocument.setMiddleName(userDTO.getMiddleName());
         userDocument.setLastName(userDTO.getLastName());
@@ -49,7 +53,7 @@ public class UserMapper implements IUserMapper {
         userDocument.setEmail(userDTO.getEmail());
         userDocument.setType(userDTO.getType());
         userDocument.setDateOfBirth(userDTO.getDateOfBirth());
-        userDocument.setZipCode(userDocument.getZipCode());
+        userDocument.setZipCode(userDTO.getZipCode());
 
         userDocument.setDateRegistered(LocalDate.now());
 

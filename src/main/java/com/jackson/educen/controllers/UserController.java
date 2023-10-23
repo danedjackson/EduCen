@@ -31,4 +31,9 @@ public class UserController {
     public ApiResponse<User> addUser(@RequestBody UserDTO user) {
         return userService.addNewUser(user);
     }
+
+    @PatchMapping("/edit")
+    public ApiResponse<User> editUser(@RequestBody UserDTO user) {
+        return userService.editUserDetails(user);
+    }
 }
