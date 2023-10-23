@@ -1,15 +1,13 @@
-package com.jackson.educen.models;
+package com.jackson.educen.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
 @Data
 @NoArgsConstructor
-public class ScoreRequest {
+public class ScoreDTO {
     @JsonProperty("student_id")
     private String studentId;
     private String grade;

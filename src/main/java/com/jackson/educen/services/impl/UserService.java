@@ -4,6 +4,7 @@ import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.IUserService;
 import org.springframework.http.HttpStatus;
@@ -65,12 +66,25 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ApiResponse<User> addNewUser(User user) {
-        return null;
+    public ApiResponse<User> addNewUser(UserDTO user) {
+        UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
+        if(null == savedDocument.getId()) {
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    "Could not insert user record"
+            );
+        }
+
+        return new ApiResponse<>(
+                HttpStatus.CREATED,
+                userMapper.userDocumentToUser(savedDocument),
+                "Successfully created user with ID: " + savedDocument.getId()
+        );
     }
 
     @Override
-    public ApiResponse<User> editUserDetails(User user) {
+    public ApiResponse<User> editUserDetails(UserDTO user) {
         return null;
     }
 }

@@ -2,6 +2,7 @@ package com.jackson.educen.controllers;
 
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.services.IUserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,5 +25,10 @@ public class UserController {
     @GetMapping("/type/{typeId}")
     public ApiResponse<List<User>> getAllUsersOfType(@PathVariable int typeId) {
         return userService.getAllUsersOfType(typeId);
+    }
+
+    @PostMapping("/add")
+    public ApiResponse<User> addUser(@RequestBody UserDTO user) {
+        return userService.addNewUser(user);
     }
 }

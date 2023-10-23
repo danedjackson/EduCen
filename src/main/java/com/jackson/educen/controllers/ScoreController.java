@@ -1,9 +1,8 @@
 package com.jackson.educen.controllers;
 
-import com.jackson.educen.documents.ScoreDocument;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Score;
-import com.jackson.educen.models.ScoreRequest;
+import com.jackson.educen.models.dto.ScoreDTO;
 import com.jackson.educen.services.IScoreService;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +34,7 @@ public class ScoreController {
     }
 
     @PostMapping
-    public ApiResponse<Score> addStudentScore(@RequestBody ScoreRequest scoreRequest) {
-        return scoreService.addStudentScore(scoreRequest);
+    public ApiResponse<Score> addStudentScore(@RequestBody ScoreDTO scoreDTO) {
+        return scoreService.addStudentScore(scoreDTO);
     }
 }

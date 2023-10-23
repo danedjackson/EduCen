@@ -3,6 +3,7 @@ package com.jackson.educen.mappers.impl;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.utils.Util;
 import org.springframework.stereotype.Component;
 
@@ -29,5 +30,29 @@ public class UserMapper implements IUserMapper {
         }
 
         return user;
+    }
+
+    @Override
+    public UserDocument userDTOToUserDocument(UserDTO userDTO) {
+        if(null == userDTO.getFirstName()) {
+            return new UserDocument();
+        }
+
+        UserDocument userDocument = new UserDocument();
+        userDocument.setFirstName(userDTO.getFirstName());
+        userDocument.setMiddleName(userDTO.getMiddleName());
+        userDocument.setLastName(userDTO.getLastName());
+        userDocument.setContactNumber(userDTO.getContactNumber());
+        userDocument.setCity(userDTO.getCity());
+        userDocument.setAddress(userDTO.getAddress());
+        userDocument.setAccess(userDTO.getAccess());
+        userDocument.setEmail(userDTO.getEmail());
+        userDocument.setType(userDTO.getType());
+        userDocument.setDateOfBirth(userDTO.getDateOfBirth());
+        userDocument.setZipCode(userDocument.getZipCode());
+
+        userDocument.setDateRegistered(LocalDate.now());
+
+        return userDocument;
     }
 }

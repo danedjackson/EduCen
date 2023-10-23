@@ -3,7 +3,7 @@ package com.jackson.educen.mappers.impl;
 import com.jackson.educen.documents.ScoreDocument;
 import com.jackson.educen.mappers.IScoreMapper;
 import com.jackson.educen.models.Score;
-import com.jackson.educen.models.ScoreRequest;
+import com.jackson.educen.models.dto.ScoreDTO;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,19 +24,19 @@ public class ScoreMapper implements IScoreMapper {
     }
 
     @Override
-    public ScoreDocument scoreRequestToScoreDocument(ScoreRequest scoreRequest) {
-        if(null==scoreRequest.getStudentId()) {
+    public ScoreDocument scoreRequestToScoreDocument(ScoreDTO scoreDTO) {
+        if(null== scoreDTO.getStudentId()) {
             return new ScoreDocument();
         }
         ScoreDocument scoreDocument = new ScoreDocument();
 
-        scoreDocument.setScore(scoreRequest.getScore());
-        scoreDocument.setGrade(scoreRequest.getGrade());
-        scoreDocument.setSubject(scoreRequest.getSubject());
-        scoreDocument.setAssignmentId(scoreRequest.getAssignmentId());
-        scoreDocument.setStudentId(scoreRequest.getStudentId());
-        scoreDocument.setTeacherId(scoreRequest.getTeacherId());
-        scoreDocument.setDateRecorded(scoreRequest.getDateRecorded());
+        scoreDocument.setScore(scoreDTO.getScore());
+        scoreDocument.setGrade(scoreDTO.getGrade());
+        scoreDocument.setSubject(scoreDTO.getSubject());
+        scoreDocument.setAssignmentId(scoreDTO.getAssignmentId());
+        scoreDocument.setStudentId(scoreDTO.getStudentId());
+        scoreDocument.setTeacherId(scoreDTO.getTeacherId());
+        scoreDocument.setDateRecorded(scoreDTO.getDateRecorded());
 
         return scoreDocument;
     }
