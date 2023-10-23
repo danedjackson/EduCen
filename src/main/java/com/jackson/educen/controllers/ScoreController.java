@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/score")
+@CrossOrigin
 public class ScoreController {
     private final IScoreService scoreService;
 

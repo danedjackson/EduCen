@@ -3,7 +3,11 @@ package com.jackson.educen.mappers.impl;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.User;
+import com.jackson.educen.utils.Util;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+
 
 @Component
 public class UserMapper implements IUserMapper {
@@ -18,6 +22,11 @@ public class UserMapper implements IUserMapper {
         user.setContactNumber(userDocument.getContactNumber());
         user.setDateOfBirth(userDocument.getDateOfBirth());
         user.setZipCode(userDocument.getZipCode());
+        user.setAccess(userDocument.getAccess());
+
+        if(null != user.getDateOfBirth()) {
+            user.setAge(new Util().getAge(LocalDate.now(), user.getDateOfBirth()));
+        }
 
         return user;
     }

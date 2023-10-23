@@ -14,11 +14,12 @@ public class User {
     private String middleName;
     private String lastName;
     private LocalDate dateOfBirth;
+    private int age;
     private String address;
     private String city;
     private String zipCode;
     private String contactNumber;
     private String email;
-
+    private String access;
 
 }
