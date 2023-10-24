@@ -1,6 +1,5 @@
 package com.jackson.educen.models.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDate;

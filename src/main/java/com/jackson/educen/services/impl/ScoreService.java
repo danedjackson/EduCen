@@ -91,6 +91,13 @@ public class ScoreService implements IScoreService {
 
     @Override
     public ApiResponse<Score> addStudentScore(ScoreDTO scoreDTO) {
+        if(null == scoreDTO.getStudentId()) {
+            return new ApiResponse<>(
+              HttpStatus.INTERNAL_SERVER_ERROR,
+              null,
+              "Cannot save score with no data"
+            );
+        }
         ScoreDocument savedDocument = scoreRepository.save(scoreMapper.scoreRequestToScoreDocument(scoreDTO));
         if(null == savedDocument.getId()) {
             return new ApiResponse<>(

@@ -3,6 +3,7 @@ package com.jackson.educen.controllers;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
 import com.jackson.educen.models.dto.UserDTO;
+import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +14,15 @@ import java.util.List;
 @CrossOrigin
 public class UserController {
     private final IUserService userService;
+    private final ILogger logger;
 
-    public UserController(IUserService userService) {
+    public UserController(IUserService userService, ILogger logger) {
         this.userService = userService;
+        this.logger = logger;
     }
     @GetMapping("/{id}")
     public ApiResponse<User> getUserInformation(@PathVariable String id) {
+        logger.infoLog("Starting request to fetch user information given ID: " + id);
         return userService.getUserById(id);
     }
 
