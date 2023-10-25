@@ -6,6 +6,7 @@ import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
 import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.repositories.IUserRepository;
+import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,16 +20,19 @@ public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
     private final IUserMapper userMapper;
+    private final ILogger logger;
 
-    public UserService(IUserRepository userRepository, IUserMapper userMapper) {
+    public UserService(IUserRepository userRepository, IUserMapper userMapper, ILogger logger) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.logger = logger;
     }
 
     @Override
     public ApiResponse<User> getUserById(String id) {
         Optional<UserDocument> userDocument =  userRepository.findById(id);
         if (userDocument.isEmpty()) {
+            logger.infoLog("User Document with ID " + id +" could not be found in the database");
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
                     null,
@@ -36,6 +40,7 @@ public class UserService implements IUserService {
             );
         }
 
+        logger.infoLog("Returning User Document with ID " + id +" from the database");
         return new ApiResponse<>(
                 HttpStatus.OK,
                 userMapper.userDocumentToUser(userDocument.get()),
@@ -47,6 +52,7 @@ public class UserService implements IUserService {
     public ApiResponse<List<User>> getAllUsersOfType(int typeId) {
         List<UserDocument> userDocumentList = userRepository.findAllUsersGivenTypeId(typeId);
         if(userDocumentList.isEmpty()) {
+            logger.infoLog("User Document with type ID " + typeId +" could not be found in the database");
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
                     null,
@@ -58,6 +64,7 @@ public class UserService implements IUserService {
             userList.add(userMapper.userDocumentToUser(userDocument));
         });
 
+        logger.infoLog("Returning all users with type " + typeId + " from the database");
         return new ApiResponse<>(
                 HttpStatus.OK,
                 userList,
@@ -69,13 +76,14 @@ public class UserService implements IUserService {
     public ApiResponse<User> addNewUser(UserDTO user) {
         UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
         if(null == savedDocument.getId()) {
+            logger.errorLog("Could not insert user information with name '"+ user.getFirstName() +"' in the database");
             return new ApiResponse<>(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     "Could not insert user record"
             );
         }
-
+        logger.infoLog("Successfully inserted user with name '"+ user.getFirstName() +"' into the database");
         return new ApiResponse<>(
                 HttpStatus.CREATED,
                 userMapper.userDocumentToUser(savedDocument),
@@ -86,14 +94,16 @@ public class UserService implements IUserService {
     @Override
     public ApiResponse<User> editUserDetails(UserDTO user) {
         if(!userRepository.existsById(user.getId())) {
+            logger.errorLog("Could not find user with the ID '" +user.getId()+"' to edit");
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
                     null,
                     "No records found with given ID: " + user.getId()
             );
         }
-
+        logger.infoLog("User information was found for ID '"+user.getId()+"'. Editing information");
         UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
+        logger.infoLog("Successfully edited information for user ID '" + user.getId() + "'. Returning updated record.");
         return new ApiResponse<>(
                 HttpStatus.OK,
                 userMapper.userDocumentToUser(savedDocument),

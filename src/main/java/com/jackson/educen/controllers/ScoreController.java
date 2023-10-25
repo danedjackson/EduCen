@@ -3,6 +3,7 @@ package com.jackson.educen.controllers;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Score;
 import com.jackson.educen.models.dto.ScoreDTO;
+import com.jackson.educen.models.dto.UserScoreDTO;
 import com.jackson.educen.services.IScoreService;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +32,11 @@ public class ScoreController {
         else {
             return scoreService.getAllScores(studentId);
         }
+    }
+
+    @GetMapping("/all")
+    public ApiResponse<List<UserScoreDTO>> getAllStudentScores() {
+        return scoreService.getAllStudentScores();
     }
 
     @PostMapping

@@ -1,10 +1,15 @@
 package com.jackson.educen.mappers.impl;
 
 import com.jackson.educen.documents.ScoreDocument;
+import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IScoreMapper;
 import com.jackson.educen.models.Score;
 import com.jackson.educen.models.dto.ScoreDTO;
+import com.jackson.educen.models.dto.UserScoreDTO;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Objects;
 
 @Component
 public class ScoreMapper implements IScoreMapper {
@@ -39,5 +44,30 @@ public class ScoreMapper implements IScoreMapper {
         scoreDocument.setDateRecorded(scoreDTO.getDateRecorded());
 
         return scoreDocument;
+    }
+
+    @Override
+    public UserScoreDTO scoreUserDocumentsToUserScoreDTO(ScoreDocument scoreDocument, List<UserDocument> userDocuments) {
+        if(null == scoreDocument.getId() || userDocuments.isEmpty()) {
+            return new UserScoreDTO();
+        }
+
+        UserScoreDTO userScoreDTO = new UserScoreDTO();
+        userScoreDTO.setStudentId(scoreDocument.getStudentId());
+        userDocuments.forEach(userDocument -> {
+            if(Objects.equals(userDocument.getId(), userScoreDTO.getStudentId())){
+                userScoreDTO.setFirstName(userDocument.getFirstName());
+                userScoreDTO.setLastName(userDocument.getLastName());
+                userScoreDTO.setMiddleName(userDocument.getMiddleName());
+            }
+        });
+        userScoreDTO.setDateRecorded(scoreDocument.getDateRecorded());
+        userScoreDTO.setGrade(scoreDocument.getGrade());
+        userScoreDTO.setScore(scoreDocument.getScore());
+        userScoreDTO.setAssignmentId(scoreDocument.getAssignmentId());
+        userScoreDTO.setSubject(scoreDocument.getSubject());
+        userScoreDTO.setTeacherId(scoreDocument.getTeacherId());
+
+        return userScoreDTO;
     }
 }
