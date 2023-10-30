@@ -13,7 +13,11 @@ import java.time.LocalDate;
 @Component
 public class UserMapper implements IUserMapper {
     public User userDocumentToUser(UserDocument userDocument) {
+        if (userDocument.getId() == null){
+            return new User();
+        }
         User user = new User();
+        user.setId(userDocument.getId());
         user.setFirstName(userDocument.getFirstName());
         user.setMiddleName(userDocument.getMiddleName());
         user.setLastName(userDocument.getLastName());
@@ -24,6 +28,7 @@ public class UserMapper implements IUserMapper {
         user.setDateOfBirth(userDocument.getDateOfBirth());
         user.setZipCode(userDocument.getZipCode());
         user.setAccess(userDocument.getAccess());
+        user.setGrade(userDocument.getGrade());
 
         if(null != user.getDateOfBirth()) {
             user.setAge(new Util().getAge(LocalDate.now(), user.getDateOfBirth()));
@@ -49,6 +54,7 @@ public class UserMapper implements IUserMapper {
         userDocument.setContactNumber(userDTO.getContactNumber());
         userDocument.setCity(userDTO.getCity());
         userDocument.setAddress(userDTO.getAddress());
+        userDocument.setGrade(userDTO.getGrade());
         userDocument.setAccess(userDTO.getAccess());
         userDocument.setEmail(userDTO.getEmail());
         userDocument.setType(userDTO.getType());

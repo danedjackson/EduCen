@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Data
 public class User {
+    private String id;
     private String firstName;
     private String middleName;
     private String lastName;
@@ -20,6 +21,6 @@ public class User {
     private String zipCode;
     private String contactNumber;
     private String email;
+    private String grade;
     private String access;
-
 }

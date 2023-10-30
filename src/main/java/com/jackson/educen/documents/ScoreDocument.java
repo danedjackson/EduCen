@@ -28,4 +28,6 @@ public class ScoreDocument {
     private LocalDate dateRecorded;
     @Field("teacher_id")
     private String teacherId;
+    @Field("comment")
+    private String comment;
 }

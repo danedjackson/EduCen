@@ -38,6 +38,8 @@ public class UserDocument {
     private LocalDate dateRegistered;
     @Field("type")
     private int type;
+    @Field("grade")
+    private String grade;
     @Field("access")
     private String access;
 }

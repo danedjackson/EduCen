@@ -24,6 +24,7 @@ public class ScoreMapper implements IScoreMapper {
         score.setScore(scoreDocument.getScore());
         score.setDateRecorded(scoreDocument.getDateRecorded());
         score.setAssignmentId(scoreDocument.getAssignmentId());
+        score.setComment(scoreDocument.getComment());
 
         return score;
     }
@@ -42,6 +43,7 @@ public class ScoreMapper implements IScoreMapper {
         scoreDocument.setStudentId(scoreDTO.getStudentId());
         scoreDocument.setTeacherId(scoreDTO.getTeacherId());
         scoreDocument.setDateRecorded(scoreDTO.getDateRecorded());
+        scoreDocument.setComment(scoreDTO.getComment());
 
         return scoreDocument;
     }

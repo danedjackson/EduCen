@@ -10,4 +10,5 @@ public class Score {
     private String assignmentId;
     private String score;
     private LocalDate dateRecorded;
+    private String comment;
 }

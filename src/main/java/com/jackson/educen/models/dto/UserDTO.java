@@ -17,5 +17,6 @@ public class UserDTO {
     private String contactNumber;
     private String email;
     private int type;
+    private String grade;
     private String access;
 }

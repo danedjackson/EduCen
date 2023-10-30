@@ -8,15 +8,12 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 public class ScoreDTO {
-    @JsonProperty("student_id")
     private String studentId;
     private String grade;
     private String subject;
-    @JsonProperty("assignment_id")
     private String assignmentId;
     private String score;
-    @JsonProperty("date_recorded")
     private LocalDate dateRecorded;
-    @JsonProperty("teacher_id")
     private String teacherId;
+    private String comment;
 }
