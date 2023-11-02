@@ -43,4 +43,9 @@ public class ScoreController {
     public ApiResponse<Score> addStudentScore(@RequestBody ScoreDTO scoreDTO) {
         return scoreService.addStudentScore(scoreDTO);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ApiResponse<Boolean> deleteScoreRecord(@PathVariable String id){
+        return scoreService.deleteScoreRecord(id);
+    }
 }

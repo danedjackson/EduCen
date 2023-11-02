@@ -25,6 +25,7 @@ public class ScoreMapper implements IScoreMapper {
         score.setDateRecorded(scoreDocument.getDateRecorded());
         score.setAssignmentId(scoreDocument.getAssignmentId());
         score.setComment(scoreDocument.getComment());
+        score.setScoreId(scoreDocument.getId());
 
         return score;
     }

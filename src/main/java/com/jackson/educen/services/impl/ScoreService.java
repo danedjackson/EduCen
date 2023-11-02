@@ -11,6 +11,9 @@ import com.jackson.educen.repositories.IScoreRepository;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IScoreService;
+import com.mongodb.client.model.Filters;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -166,6 +169,46 @@ public class ScoreService implements IScoreService {
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
                     "An error occurred while fetching User-Score data: " + e.getMessage()
+            );
+        }
+    }
+
+    @Override
+    public ApiResponse<Boolean> deleteScoreRecord(String scoreId) {
+        try {
+            if (scoreId.isEmpty()) {
+                logger.errorLog("Could not find score ID to be deleted");
+                return new ApiResponse<>(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        null,
+                        "No ID provided for removal"
+                );
+            }
+            // Should delete record
+            logger.infoLog("Deleting score record with ID (" + scoreId +")");
+            scoreRepository.deleteScoreById(scoreId);
+
+            // Check if record is deleted
+            if(scoreRepository.findScoreById(new ObjectId(scoreId)).isPresent()) {
+                logger.errorLog("Score record was still found after deletion.");
+                return new ApiResponse<>(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        null,
+                        "Failed to delete score record with ID: " + scoreId
+                );
+            }
+            logger.infoLog("Successfully deleted record with ID: " +scoreId);
+            return new ApiResponse<>(
+                    HttpStatus.OK,
+                    true,
+                    "Successfully deleted record with ID: " + scoreId
+            );
+        } catch (Exception e) {
+            logger.errorLog("Something went wrong attempting to delete score record with ID (" + scoreId + "): " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    "Something went wrong while deleting score record with ID: " + scoreId
             );
         }
     }

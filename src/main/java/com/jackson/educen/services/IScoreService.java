@@ -11,6 +11,7 @@ public interface IScoreService {
     ApiResponse<List<Score>> getAllGradeSubjectScores(String id, String grade, String subject);
     ApiResponse<List<Score>> getAllGradeScores(String id, String grade);
     ApiResponse<List<Score>> getAllScores(String id);
-    ApiResponse<Score> addStudentScore(ScoreDTO scoreDocument);
+    ApiResponse<Score> addStudentScore(ScoreDTO scoreDTO);
     ApiResponse<List<UserScoreDTO>> getAllStudentScores();
+    ApiResponse<Boolean> deleteScoreRecord(String scoreId);
 }

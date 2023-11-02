@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 @Data
 public class Score {
+    private String scoreId;
     private String grade;
     private String subject;
     private String assignmentId;
