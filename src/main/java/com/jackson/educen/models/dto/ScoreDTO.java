@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 @Data
 @NoArgsConstructor
-public class ScoreDTO {
+public class    ScoreDTO {
+    //TODO: Replace Score model with this one
     private String scoreId;
     private String studentId;
     private String grade;

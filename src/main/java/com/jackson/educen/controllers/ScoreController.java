@@ -48,4 +48,9 @@ public class ScoreController {
     public ApiResponse<Boolean> deleteScoreRecord(@PathVariable String id){
         return scoreService.deleteScoreRecord(id);
     }
+
+    @PatchMapping("/update/{id}")
+    public ApiResponse<ScoreDTO> editStudentScore(@RequestBody ScoreDTO scoreDTO) {
+        return scoreService.editStudentScore(scoreDTO);
+    }
 }
