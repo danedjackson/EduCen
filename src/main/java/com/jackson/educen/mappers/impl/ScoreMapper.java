@@ -45,9 +45,30 @@ public class ScoreMapper implements IScoreMapper {
         scoreDocument.setTeacherId(scoreDTO.getTeacherId());
         scoreDocument.setDateRecorded(scoreDTO.getDateRecorded());
         scoreDocument.setComment(scoreDTO.getComment());
+        scoreDocument.setId(scoreDTO.getScoreId());
 
         return scoreDocument;
     }
+
+    @Override
+    public ScoreDTO scoreDocumentToScoreDTO(ScoreDocument scoreDocument) {
+        if(null == scoreDocument.getId()) {
+            return new ScoreDTO();
+        }
+        ScoreDTO scoreDTO = new ScoreDTO();
+        scoreDTO.setScore(scoreDocument.getScore());
+        scoreDTO.setScoreId(scoreDocument.getId());
+        scoreDTO.setGrade(scoreDocument.getGrade());
+        scoreDTO.setComment(scoreDocument.getComment());
+        scoreDTO.setSubject(scoreDocument.getSubject());
+        scoreDTO.setStudentId(scoreDocument.getStudentId());
+        scoreDTO.setAssignmentId(scoreDocument.getAssignmentId());
+        scoreDTO.setTeacherId(scoreDocument.getTeacherId());
+        scoreDTO.setDateRecorded(scoreDocument.getDateRecorded());
+
+        return scoreDTO;
+    }
+
 
     @Override
     public UserScoreDTO scoreUserDocumentsToUserScoreDTO(ScoreDocument scoreDocument, List<UserDocument> userDocuments) {

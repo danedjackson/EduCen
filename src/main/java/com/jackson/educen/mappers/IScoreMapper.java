@@ -11,5 +11,6 @@ import java.util.List;
 public interface IScoreMapper {
     Score scoreDocumentToScore(ScoreDocument Score);
     ScoreDocument scoreRequestToScoreDocument(ScoreDTO scoreDTO);
+    ScoreDTO scoreDocumentToScoreDTO(ScoreDocument scoreDocument);
     UserScoreDTO scoreUserDocumentsToUserScoreDTO(ScoreDocument scoreDocument, List<UserDocument> userDocument);
 }

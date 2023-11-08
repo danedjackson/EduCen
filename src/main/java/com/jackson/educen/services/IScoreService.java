@@ -14,4 +14,5 @@ public interface IScoreService {
     ApiResponse<Score> addStudentScore(ScoreDTO scoreDTO);
     ApiResponse<List<UserScoreDTO>> getAllStudentScores();
     ApiResponse<Boolean> deleteScoreRecord(String scoreId);
+    ApiResponse<ScoreDTO> editStudentScore(ScoreDTO scoreDTO);
 }

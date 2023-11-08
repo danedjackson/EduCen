@@ -17,10 +17,7 @@ import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class ScoreService implements IScoreService {
@@ -211,6 +208,52 @@ public class ScoreService implements IScoreService {
                     "Something went wrong while deleting score record with ID: " + scoreId
             );
         }
+    }
+
+    public ApiResponse<ScoreDTO> editStudentScore(ScoreDTO scoreDTO) {
+        try {
+            Optional<ScoreDocument> scoreDocument = scoreRepository.findScoreById(new ObjectId(scoreDTO.getScoreId()));
+            if(scoreDocument.isEmpty()) {
+                logger.errorLog("Could not find score record with ID: " + scoreDTO.getScoreId());
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "Could not find score to edit"
+                );
+            }
+            ScoreDTO fetchedScore = scoreMapper.scoreDocumentToScoreDTO(scoreDocument.get());
+            // Setting timestamp to fetched data for comparison
+            // TODO: Allow teachers to insert the date the score was recorded.
+            fetchedScore.setDateRecorded(scoreDTO.getDateRecorded());
+
+            if(Objects.equals(scoreDTO, fetchedScore)) {
+                logger.warnLog("Both objects are equal. No editing of score was done");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_MODIFIED,
+                        null,
+                        "No changes detected."
+                );
+            }
+
+            ScoreDocument savedScoreDocument = scoreRepository.save(scoreMapper.scoreRequestToScoreDocument(scoreDTO));
+            if(null == savedScoreDocument.getId()) {
+                logger.errorLog("Score document was empty after saving");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_MODIFIED,
+                        null,
+                        "Could not save edited record."
+                );
+            }
+            logger.infoLog("Successfully updated score record with ID: " + savedScoreDocument.getId());
+            return new ApiResponse<>(
+                    HttpStatus.OK,
+                    scoreMapper.scoreDocumentToScoreDTO(savedScoreDocument),
+                    "Successfully updated score record"
+            );
+        } catch(Exception e) {
+            logger.errorLog("");
+        }
+        return null;
     }
 
 }
