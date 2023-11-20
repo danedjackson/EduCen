@@ -14,8 +14,8 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Service
-public class JwtService {
-    private String generateToken(UserDetails userDetails) {
+public class JwtService implements IJwtService{
+    public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))

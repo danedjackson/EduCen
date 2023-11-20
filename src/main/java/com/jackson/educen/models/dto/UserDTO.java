@@ -1,5 +1,6 @@
 package com.jackson.educen.models.dto;
 
+import com.jackson.educen.models.Role;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ public class UserDTO {
     private String firstName;
     private String middleName;
     private String lastName;
+    private String password;
     private LocalDate dateOfBirth;
     private String address;
     private String city;
@@ -19,4 +21,5 @@ public class UserDTO {
     private int type;
     private String grade;
     private String access;
+    private Role role;
 }
