@@ -2,6 +2,8 @@ package com.jackson.educen.controllers;
 
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.SignIn.SignInRequest;
+import com.jackson.educen.models.dto.SignIn.SignInResponse;
 import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.services.IAuthenticationService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +22,11 @@ public class AuthenticationController {
 
     @PostMapping("/signup")
     public ApiResponse<User> signup(@RequestBody UserDTO signUpRequest) {
-        return authenticationService.signup(signUpRequest);
+        return authenticationService.signUp(signUpRequest);
+    }
+
+    @PostMapping("/signin")
+    public ApiResponse<SignInResponse> signin(@RequestBody SignInRequest signInRequest) {
+        return authenticationService.signIn(signInRequest);
     }
 }

@@ -2,10 +2,11 @@ package com.jackson.educen.services;
 
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.SignIn.SignInRequest;
+import com.jackson.educen.models.dto.SignIn.SignInResponse;
 import com.jackson.educen.models.dto.UserDTO;
 
 public interface IAuthenticationService {
-    public default ApiResponse<User> signup(UserDTO signUpRequest) {
-        return null;
-    }
+    public ApiResponse<User> signUp(UserDTO signUpRequest);
+    public ApiResponse<SignInResponse> signIn(SignInRequest signInRequest);
 }
