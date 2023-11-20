@@ -11,4 +11,5 @@ import java.util.List;
 public interface IUserRepository extends MongoRepository<UserDocument, String> {
     @Query("{'type': ?0}")
     List<UserDocument> findAllUsersGivenTypeId(int type);
+    UserDocument findByEmail(String email);
 }

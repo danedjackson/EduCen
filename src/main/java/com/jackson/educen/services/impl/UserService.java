@@ -9,6 +9,9 @@ import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -109,5 +112,16 @@ public class UserService implements IUserService {
                 userMapper.userDocumentToUser(savedDocument),
                 "Successfully edited record with ID: " + savedDocument.getId()
         );
+    }
+
+    // JWT
+    @Override
+    public UserDetailsService userDetailsService(){
+        return new UserDetailsService() {
+            @Override
+            public UserDetails loadUserByUsername(String userEmail) throws UsernameNotFoundException {
+                return userRepository.findByEmail(userEmail);
+            }
+        };
     }
 }
