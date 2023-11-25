@@ -1,5 +1,7 @@
 package com.jackson.educen.configurations;
 
+import com.jackson.educen.services.IJwtService;
+import com.jackson.educen.services.IUserService;
 import com.jackson.educen.services.impl.JwtService;
 import com.jackson.educen.services.impl.UserService;
 import io.micrometer.common.util.StringUtils;
@@ -23,8 +25,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
-    private final UserService userService;
+    private final IJwtService jwtService;
+    private final IUserService userService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -47,6 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             //TODO: If Login by Username, change logic to load user by userName and not userEmail
             UserDetails userDetails = userService.userDetailsService().loadUserByUsername(userEmail);
 
+            // BELOW CODE IS PROBLEMATIC! userDetails does not have username which is beng compared in isTokenValid
             if(jwtService.isTokenValid(jwt, userDetails)) {
                 SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 

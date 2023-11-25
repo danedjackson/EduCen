@@ -7,8 +7,8 @@ import java.util.HashMap;
 
 public interface IJwtService {
     String extractUsername(String token);
-    String generateToken(UserDetails userDetails);
+    String generateToken(UserDocument userDocument);
     public boolean isTokenValid(String token, UserDetails userDetails);
 
-    String generateRefreshToken(HashMap<String, Object> extraClaims, UserDocument userDetails);
+    String generateRefreshToken(HashMap<String, Object> extraClaims, UserDocument userDocument);
 }

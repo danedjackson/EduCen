@@ -62,6 +62,7 @@ public class UserMapper implements IUserMapper {
         userDocument.setZipCode(userDTO.getZipCode());
         userDocument.setRole(userDTO.getRole());
         userDocument.setDateRegistered(LocalDate.now());
+        userDocument.setUsername(userDTO.getUsername());
 
         return userDocument;
     }

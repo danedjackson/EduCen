@@ -2,6 +2,7 @@ package com.jackson.educen.controllers;
 
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.RefreshToken.RefreshTokenRequest;
 import com.jackson.educen.models.dto.SignIn.SignInRequest;
 import com.jackson.educen.models.dto.SignIn.SignInResponse;
 import com.jackson.educen.models.dto.UserDTO;
@@ -28,5 +29,9 @@ public class AuthenticationController {
     @PostMapping("/signin")
     public ApiResponse<SignInResponse> signin(@RequestBody SignInRequest signInRequest) {
         return authenticationService.signIn(signInRequest);
+    }
+    @PostMapping("/refresh")
+    public ApiResponse<SignInResponse> refresh(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return authenticationService.resfreshToken(refreshTokenRequest);
     }
 }

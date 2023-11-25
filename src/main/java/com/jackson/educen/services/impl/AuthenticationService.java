@@ -4,6 +4,7 @@ import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.impl.UserMapper;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.RefreshToken.RefreshTokenRequest;
 import com.jackson.educen.models.dto.SignIn.SignInRequest;
 import com.jackson.educen.models.dto.SignIn.SignInResponse;
 import com.jackson.educen.models.dto.UserDTO;
@@ -35,8 +36,7 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     public ApiResponse<User> signUp(UserDTO signUpRequest) {
-        UserDocument userDocument;
-        userDocument = userMapper.userDTOToUserDocument(signUpRequest);
+        UserDocument userDocument = userMapper.userDTOToUserDocument(signUpRequest);
         userDocument.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
 
         UserDocument savedUser = userRepository.save(userDocument);
@@ -52,7 +52,7 @@ public class AuthenticationService implements IAuthenticationService {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 signInRequest.getEmail(), signInRequest.getPassword()));
 
-        UserDocument user = userRepository.findByEmail(signInRequest.getEmail());
+        var user = userRepository.findByEmail(signInRequest.getEmail());
 
         if (null == user.getId()) {
             return new ApiResponse<>(
@@ -73,6 +73,38 @@ public class AuthenticationService implements IAuthenticationService {
                 HttpStatus.FOUND,
                 signInResponse,
                 "User validated"
+        );
+    }
+
+    @Override
+    public ApiResponse<SignInResponse> resfreshToken(RefreshTokenRequest refreshTokenRequest) {
+        String userEmail = jwtService.extractUsername(refreshTokenRequest.getToken());
+        UserDocument user = userRepository.findByEmail(userEmail);
+        if(null == user) {
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Could not validate user"
+            );
+        }
+        if(jwtService.isTokenValid(refreshTokenRequest.getToken(), user)){
+            // Refresh Token valid and user exists
+            var jwt = jwtService.generateToken(user);
+
+            SignInResponse signInResponse = new SignInResponse();
+            signInResponse.setToken(jwt);
+            signInResponse.setRefreshToken(refreshTokenRequest.getToken());
+
+            return new ApiResponse<>(
+                    HttpStatus.FOUND,
+                    signInResponse,
+                    "Validated refresh token"
+            );
+        }
+        return new ApiResponse<>(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                null,
+                "Something went wrong querying refresh token"
         );
     }
 }

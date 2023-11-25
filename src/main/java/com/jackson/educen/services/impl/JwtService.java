@@ -17,9 +17,9 @@ import java.util.function.Function;
 
 @Service
 public class JwtService implements IJwtService{
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDocument userDocument) {
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
+                .setSubject(userDocument.getEmail())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1_800_000))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
@@ -36,7 +36,7 @@ public class JwtService implements IJwtService{
 
     private Key getSignKey(){
         // TODO: Grab secret key from config
-        byte[] key = Decoders.BASE64.decode("193748SDNQUA1021JS012912731WB1091231MMSDAHBSD12012412KKDE11");
+        byte[] key = Decoders.BASE64.decode("cnZCaWbtCBADMbtxjKbWLHv2BNY5QF65VxvcCOa3eM4ThwQ0TG0eiJXYTvmjpeu");
         return Keys.hmacShaKeyFor(key);
     }
 
