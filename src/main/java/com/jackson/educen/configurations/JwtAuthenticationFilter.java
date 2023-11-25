@@ -1,6 +1,7 @@
 package com.jackson.educen.configurations;
 
 import com.jackson.educen.services.IJwtService;
+import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
 import com.jackson.educen.services.impl.JwtService;
 import com.jackson.educen.services.impl.UserService;
@@ -27,43 +28,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final IJwtService jwtService;
     private final IUserService userService;
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        // Get JWT from the Authorization header in request
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+    private final ILogger logger;
 
-        if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request, response);
-            return;
-        }
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain){
+        try {
+            // Get JWT from the Authorization header in request
+            final String authHeader = request.getHeader("Authorization");
+            final String jwt;
+            final String userEmail;
 
-        // Extract information from the JWT
-        jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
-
-        // Validate information from JWT
-        if(StringUtils.isNotEmpty(userEmail) && SecurityContextHolder.getContext().getAuthentication() == null){
-            //TODO: If Login by Username, change logic to load user by userName and not userEmail
-            UserDetails userDetails = userService.userDetailsService().loadUserByUsername(userEmail);
-
-            // BELOW CODE IS PROBLEMATIC! userDetails does not have username which is beng compared in isTokenValid
-            if(jwtService.isTokenValid(jwt, userDetails)) {
-                SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-
-                token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Update our security context
-                securityContext.setAuthentication(token);
-                SecurityContextHolder.setContext(securityContext);
+            if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
             }
+
+            // Extract information from the JWT
+            jwt = authHeader.substring(7);
+            userEmail = jwtService.extractUsername(jwt);
+
+            // Validate information from JWT
+            if (StringUtils.isNotEmpty(userEmail) && SecurityContextHolder.getContext().getAuthentication() == null) {
+                //TODO: If Login by Username, change logic to load user by userName and not userEmail
+                UserDetails userDetails = userService.userDetailsService().loadUserByUsername(userEmail);
+
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+
+                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()
+                    );
+
+                    token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // Update our security context
+                    securityContext.setAuthentication(token);
+                    SecurityContextHolder.setContext(securityContext);
+                }
+            }
+            filterChain.doFilter(request, response);
+        } catch(Exception e) {
+            logger.errorLog("Internal filter error: " + e.getMessage());
         }
-        filterChain.doFilter(request, response);
     }
 }

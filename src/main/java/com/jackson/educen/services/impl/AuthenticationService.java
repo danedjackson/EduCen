@@ -11,6 +11,7 @@ import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.IAuthenticationService;
 import com.jackson.educen.services.IJwtService;
+import com.jackson.educen.services.ILogger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,19 +27,21 @@ public class AuthenticationService implements IAuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final IJwtService jwtService;
     private final UserMapper userMapper;
+    private final ILogger logger;
 
-    public AuthenticationService(IUserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, IJwtService jwtService, UserMapper userMapper) {
+    public AuthenticationService(IUserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, IJwtService jwtService, UserMapper userMapper, ILogger logger) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userMapper = userMapper;
+        this.logger = logger;
     }
 
     public ApiResponse<User> signUp(UserDTO signUpRequest) {
         UserDocument userDocument = userMapper.userDTOToUserDocument(signUpRequest);
         userDocument.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-
+        //TODO: Check if user exists before saving!!!
         UserDocument savedUser = userRepository.save(userDocument);
 
         return new ApiResponse<>(
@@ -49,31 +52,42 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     public ApiResponse<SignInResponse> signIn(SignInRequest signInRequest) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                signInRequest.getEmail(), signInRequest.getPassword()));
+        UserDocument user;
+        try{
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    signInRequest.getEmail(), signInRequest.getPassword()));
 
-        var user = userRepository.findByEmail(signInRequest.getEmail());
+            user = userRepository.findByEmail(signInRequest.getEmail());
 
-        if (null == user.getId()) {
+            if (null == user.getId()) {
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "Invalid email or password provided"
+                );
+            }
+
+            var jwt = jwtService.generateToken(user);
+            var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
+
+            SignInResponse signInResponse = new SignInResponse();
+            signInResponse.setToken(jwt);
+            signInResponse.setRefreshToken(refreshToken);
+
             return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.FOUND,
+                    signInResponse,
+                    "User validated"
+            );
+
+        } catch(Exception e) {
+            logger.errorLog("An error occurred during authentication of user " + signInRequest.getEmail()+": " +e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    "Invalid email or password provided"
+                    "An error occurred during authentication"
             );
         }
-
-        var jwt = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
-
-        SignInResponse signInResponse = new SignInResponse();
-        signInResponse.setToken(jwt);
-        signInResponse.setRefreshToken(refreshToken);
-
-        return new ApiResponse<>(
-                HttpStatus.FOUND,
-                signInResponse,
-                "User validated"
-        );
     }
 
     @Override

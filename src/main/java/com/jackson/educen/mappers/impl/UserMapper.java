@@ -62,7 +62,9 @@ public class UserMapper implements IUserMapper {
         userDocument.setZipCode(userDTO.getZipCode());
         userDocument.setRole(userDTO.getRole());
         userDocument.setDateRegistered(LocalDate.now());
-        userDocument.setUsername(userDTO.getUsername());
+
+        // Setting username to Email. TODO: If changing from email to username, this needs editing
+        userDocument.setUsername(userDTO.getEmail());
 
         return userDocument;
     }
