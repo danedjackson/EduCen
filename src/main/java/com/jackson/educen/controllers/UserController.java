@@ -1,6 +1,7 @@
 package com.jackson.educen.controllers;
 
 import com.jackson.educen.models.ApiResponse;
+import com.jackson.educen.models.Role;
 import com.jackson.educen.models.User;
 import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.services.ILogger;
@@ -33,6 +34,8 @@ public class UserController {
 
     @PostMapping("/add")
     public ApiResponse<User> addUser(@RequestBody UserDTO user) {
+        // USERS (Teachers) create new student documents
+        user.setRole(Role.STUDENT);
         return userService.addNewUser(user);
     }
 
