@@ -7,13 +7,11 @@ import com.jackson.educen.models.dto.SignIn.SignInRequest;
 import com.jackson.educen.models.dto.SignIn.SignInResponse;
 import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.services.IAuthenticationService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@CrossOrigin
 public class AuthenticationController {
     private final IAuthenticationService authenticationService;
 
