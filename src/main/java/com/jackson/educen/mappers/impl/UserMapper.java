@@ -2,7 +2,7 @@ package com.jackson.educen.mappers.impl;
 
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
-import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.User;
 import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.utils.Util;
 import org.springframework.stereotype.Component;

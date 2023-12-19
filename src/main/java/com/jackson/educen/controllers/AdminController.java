@@ -3,7 +3,7 @@ package com.jackson.educen.controllers;
 
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Role;
-import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.User;
 import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.services.IUserService;
 import org.springframework.http.HttpStatus;

@@ -3,7 +3,7 @@ package com.jackson.educen.services.impl;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.ApiResponse;
-import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.User;
 import com.jackson.educen.models.dto.UserDTO;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;

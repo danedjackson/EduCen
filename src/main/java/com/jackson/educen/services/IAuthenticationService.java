@@ -1,7 +1,7 @@
 package com.jackson.educen.services;
 
 import com.jackson.educen.models.ApiResponse;
-import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.User;
 import com.jackson.educen.models.dto.RefreshToken.RefreshTokenRequest;
 import com.jackson.educen.models.dto.SignIn.SignInRequest;
 import com.jackson.educen.models.dto.SignIn.SignInResponse;

@@ -1,7 +1,7 @@
 package com.jackson.educen.services;
 
 import com.jackson.educen.models.ApiResponse;
-import com.jackson.educen.models.User;
+import com.jackson.educen.models.dto.User;
 import com.jackson.educen.models.dto.UserDTO;
 import org.springframework.security.core.userdetails.UserDetailsService;
 

@@ -3,7 +3,7 @@ package com.jackson.educen.mappers.impl;
 import com.jackson.educen.documents.ScoreDocument;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IScoreMapper;
-import com.jackson.educen.models.Score;
+import com.jackson.educen.models.dto.Score;
 import com.jackson.educen.models.dto.ScoreDTO;
 import com.jackson.educen.models.dto.UserScoreDTO;
 import org.springframework.stereotype.Component;
