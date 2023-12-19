@@ -14,6 +14,7 @@ import com.jackson.educen.services.IJwtService;
 import com.jackson.educen.services.ILogger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -80,7 +81,15 @@ public class AuthenticationService implements IAuthenticationService {
                     "User validated"
             );
 
-        } catch(Exception e) {
+        }
+        catch(BadCredentialsException e) {
+            logger.errorLog("An error occurred during authentication of user " + signInRequest.getEmail()+": " +e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.BAD_REQUEST,
+                    null,
+                    "Incorrect Credentials"
+            );
+        }catch(Exception e) {
             logger.errorLog("An error occurred during authentication of user " + signInRequest.getEmail()+": " +e.getMessage());
             return new ApiResponse<>(
                     HttpStatus.INTERNAL_SERVER_ERROR,
