@@ -23,7 +23,7 @@ public class TeacherController {
     }
 
     @GetMapping("/plans/{id}")
-    public ApiResponse<FileDocument> getPhoto(@PathVariable String id) {
+    public ApiResponse<FileDocument> getFile(@PathVariable String id) {
         return teacherService.getFile(id);
     }
 }

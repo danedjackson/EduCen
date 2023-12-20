@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Data
@@ -23,6 +24,8 @@ public class FileDocument {
     private String comments;
     @Field("date_uploaded")
     private LocalDate dateUploaded;
+    @Field("date_modified")
+    private LocalDateTime dateModified;
     @Field("document")
     private Binary document;
     @Field("checked")

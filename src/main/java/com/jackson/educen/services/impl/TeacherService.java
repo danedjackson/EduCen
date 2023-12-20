@@ -3,6 +3,7 @@ package com.jackson.educen.services.impl;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.documents.FileDocument;
+import com.jackson.educen.models.dto.File;
 import com.jackson.educen.repositories.IFileRepository;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -32,7 +34,6 @@ public class TeacherService implements ITeacherService {
     }
     @Override
     public ApiResponse<String> uploadFile(MultipartFile file) {
-        UserDocument teacherDetails;
         String teacherId = file.getOriginalFilename();
         if (teacherId == null || teacherId.isEmpty()) {
             logger.infoLog("Invalid file name for file provided");
@@ -50,7 +51,7 @@ public class TeacherService implements ITeacherService {
                     "Could not find teacher information."
             );
         }
-        teacherDetails = document.get();
+        UserDocument teacherDetails = document.get();
         FileDocument fileDocument = new FileDocument();
         try {
             fileDocument.setDateUploaded(LocalDate.now());
@@ -95,13 +96,42 @@ public class TeacherService implements ITeacherService {
     public ApiResponse<FileDocument> getFile(String id) {
         Optional<FileDocument> document = documentRepository.findById(id);
         if(document.isEmpty()) {
-
+            logger.errorLog("Could not retrieve document with ID: " + id);
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Unable to retrieve document"
+            );
         }
         FileDocument fileDocument = document.get();
         return new ApiResponse<>(
                 HttpStatus.OK,
                 fileDocument,
                 "Retrieved document"
+        );
+    }
+
+    @Override
+    public ApiResponse<String> updateFile(FileDocument fileInfo) {
+        Optional<FileDocument> document = documentRepository.findById(cleanFileName(fileInfo.getId()));
+        if(document.isEmpty()){
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Could not find file information."
+            );
+        }
+        FileDocument fileDocument = document.get();
+        fileDocument.setComments(fileInfo.getComments());
+        fileDocument.setChecked(true);
+        fileDocument.setDateModified(LocalDateTime.now());
+
+        documentRepository.save(fileDocument);
+
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                fileDocument.getId(),
+                "Updated record for document"
         );
     }
 
