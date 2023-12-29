@@ -40,4 +40,8 @@ public class AdminController {
         return teacherService.updateFile(fileInfo);
     }
 
+    @GetMapping("/plans")
+    public ApiResponse<List<User>> getAllPlans() {
+        return teacherService.getAllTeacherPlans();
+    }
 }

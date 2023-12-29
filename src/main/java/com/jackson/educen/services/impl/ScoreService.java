@@ -33,7 +33,7 @@ public class ScoreService implements IScoreService {
 
     @Override
     public ApiResponse<List<Score>> getAllGradeSubjectScores(String id, String grade, String subject) {
-        List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenGradeSubject(id, grade, subject);
+        List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenIdGradeSubject(id, grade, subject);
         if(scoreDocuments.isEmpty()) {
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
@@ -55,7 +55,7 @@ public class ScoreService implements IScoreService {
 
     @Override
     public ApiResponse<List<Score>> getAllGradeScores(String id, String grade) {
-        List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenGrade(id, grade);
+        List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenIdGrade(id, grade);
         if(scoreDocuments.isEmpty()) {
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
@@ -77,7 +77,7 @@ public class ScoreService implements IScoreService {
 
     @Override
     public ApiResponse<List<Score>> getAllScores(String id) {
-        List<ScoreDocument> scoreDocuments = scoreRepository.findAllScores(id);
+        List<ScoreDocument> scoreDocuments = scoreRepository.findAllStudentScores(id);
         if(scoreDocuments.isEmpty()) {
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
@@ -137,16 +137,58 @@ public class ScoreService implements IScoreService {
     @Override
     public ApiResponse<List<UserScoreDTO>> getAllStudentScores() {
         try {
+            // Grab all scores
             List<ScoreDocument> scoreDocuments = scoreRepository.findAll();
             Set<String> studentIds = new HashSet<>();
 
+            // Populating the list of student IDs with scores
             scoreDocuments.forEach(scoreDocument -> {
                 studentIds.add(scoreDocument.getStudentId());
             });
 
+            // Grabbing user documents that are associated to scores
             List<UserDocument> userDocuments = userRepository.findAllById(studentIds);
 
             List<UserScoreDTO> userScore = new ArrayList<>();
+            // Populating the user-score relationship object
+            scoreDocuments.forEach(scoreDocument -> {
+                userScore.add(scoreMapper.scoreUserDocumentsToUserScoreDTO(scoreDocument, userDocuments));
+            });
+
+            logger.infoLog("Successfully built UserScoreDTO Object and returning");
+            return new ApiResponse<>(
+                    HttpStatus.OK,
+                    userScore,
+                    "Successfully fetch User-Score data"
+            );
+        } catch (Exception e) {
+            // Handle the exception
+            logger.errorLog("Could not fetch data to populate userScoreDTO: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    "An error occurred while fetching User-Score data: " + e.getMessage()
+            );
+        }
+    }
+
+    @Override
+    public ApiResponse<List<UserScoreDTO>> getAllStudentScoresByGrade(String grade) {
+        try {
+            // Grab all scores for a provided grade level
+            List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenGrade(grade);
+            Set<String> studentIds = new HashSet<>();
+
+            // Populating the list of student IDs associated with scores
+            scoreDocuments.forEach(scoreDocument -> {
+                studentIds.add(scoreDocument.getStudentId());
+            });
+
+            // Grabbing user documents that are associated to scores
+            List<UserDocument> userDocuments = userRepository.findAllById(studentIds);
+
+            List<UserScoreDTO> userScore = new ArrayList<>();
+            // Populating the user-score relationship object
             scoreDocuments.forEach(scoreDocument -> {
                 userScore.add(scoreMapper.scoreUserDocumentsToUserScoreDTO(scoreDocument, userDocuments));
             });

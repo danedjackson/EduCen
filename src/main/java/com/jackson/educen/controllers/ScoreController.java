@@ -19,7 +19,7 @@ public class ScoreController {
         this.scoreService = scoreService;
     }
 
-    @GetMapping("/{studentId}")
+    @GetMapping("/student/{studentId}")
     public ApiResponse<List<Score>> getStudentScoresForSubjectAndGrade(@PathVariable String studentId,
                                                                        @RequestParam(name = "subject", required = false) String subject,
                                                                        @RequestParam(name = "grade", required = false) String grade) {
@@ -37,6 +37,11 @@ public class ScoreController {
     @GetMapping("/all")
     public ApiResponse<List<UserScoreDTO>> getAllStudentScores() {
         return scoreService.getAllStudentScores();
+    }
+
+    @GetMapping("/grade/{grade}")
+    public ApiResponse<List<UserScoreDTO>> getAllStudentScoresByGrade(@PathVariable String grade) {
+        return scoreService.getAllStudentScoresByGrade(grade);
     }
 
     @PostMapping

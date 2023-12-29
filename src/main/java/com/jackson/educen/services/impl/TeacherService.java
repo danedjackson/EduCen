@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -116,6 +117,50 @@ public class TeacherService implements ITeacherService {
                 HttpStatus.OK,
                 fileDocument,
                 "Retrieved document"
+        );
+    }
+
+    @Override
+    public ApiResponse<List<User>> getAllTeacherPlans() {
+        List<FileDocument> documents = documentRepository.findAll();
+
+        HashSet<String> teacherIds = new HashSet<>();
+        documents.forEach(document -> teacherIds.add(document.getTeacherId()));
+
+        if(teacherIds.isEmpty()){
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "No documents with teacher IDs found"
+            );
+        }
+        // Find all teachers who have uploaded documents
+        List<UserDocument> teachersWithDocuments = userRepository.findAllById(teacherIds);
+        if(teachersWithDocuments.isEmpty()){
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "No documents found"
+            );
+        }
+        List<User> teachers = new ArrayList<>();
+
+        // Transforming raw user data
+        teachersWithDocuments.forEach(document -> {
+            teachers.add(userMapper.userDocumentToUser(document));
+        });
+
+        if(teachers.isEmpty()){
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "No teacher information found"
+            );
+        }
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                teachers,
+                "Successfully retrieved teachers with uploaded lesson plans"
         );
     }
 
