@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/teacher")
+@RequestMapping("/api/v1/teacher")
 @CrossOrigin
 public class TeacherController {
 

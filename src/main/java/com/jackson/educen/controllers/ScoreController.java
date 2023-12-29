@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/score")
+@RequestMapping("api/v1/score")
 @CrossOrigin
 public class ScoreController {
     private final IScoreService scoreService;
