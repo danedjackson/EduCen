@@ -1,4 +1,4 @@
-package com.jackson.educen.models.dto;
+package com.jackson.educen.models.dto.User;
 
 import com.jackson.educen.models.Role;
 import lombok.Data;
@@ -19,8 +19,6 @@ public class UserDTO {
     private String zipCode;
     private String contactNumber;
     private String email;
-    private int type;
     private String grade;
-    private String access;
     private Role role;
 }

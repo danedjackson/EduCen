@@ -2,8 +2,8 @@ package com.jackson.educen.mappers.impl;
 
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
-import com.jackson.educen.models.dto.User;
-import com.jackson.educen.models.dto.UserDTO;
+import com.jackson.educen.models.dto.User.User;
+import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.utils.Util;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +27,7 @@ public class UserMapper implements IUserMapper {
         user.setContactNumber(userDocument.getContactNumber());
         user.setDateOfBirth(userDocument.getDateOfBirth());
         user.setZipCode(userDocument.getZipCode());
-        user.setAccess(userDocument.getAccess());
+        user.setRole(userDocument.getRole());
         user.setGrade(userDocument.getGrade());
 
         if(null != user.getDateOfBirth()) {
@@ -55,9 +55,7 @@ public class UserMapper implements IUserMapper {
         userDocument.setCity(userDTO.getCity());
         userDocument.setAddress(userDTO.getAddress());
         userDocument.setGrade(userDTO.getGrade());
-        userDocument.setAccess(userDTO.getAccess());
         userDocument.setEmail(userDTO.getEmail());
-        userDocument.setType(userDTO.getType());
         userDocument.setDateOfBirth(userDTO.getDateOfBirth());
         userDocument.setZipCode(userDTO.getZipCode());
         userDocument.setRole(userDTO.getRole());

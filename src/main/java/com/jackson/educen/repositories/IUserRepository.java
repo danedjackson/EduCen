@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface IUserRepository extends MongoRepository<UserDocument, String> {
-    @Query("{'type': ?0}")
-    List<UserDocument> findAllUsersGivenTypeId(int type);
+    @Query("{'role': ?0}")
+    List<UserDocument> findAllUsersGivenRole(String role);
     UserDocument findByEmail(String email);
 }

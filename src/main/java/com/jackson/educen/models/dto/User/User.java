@@ -1,5 +1,6 @@
-package com.jackson.educen.models.dto;
+package com.jackson.educen.models.dto.User;
 
+import com.jackson.educen.models.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,5 +23,5 @@ public class User {
     private String contactNumber;
     private String email;
     private String grade;
-    private String access;
+    private Role role;
 }

@@ -2,9 +2,9 @@ package com.jackson.educen.mappers;
 
 import com.jackson.educen.documents.ScoreDocument;
 import com.jackson.educen.documents.UserDocument;
-import com.jackson.educen.models.dto.Score;
-import com.jackson.educen.models.dto.ScoreDTO;
-import com.jackson.educen.models.dto.UserScoreDTO;
+import com.jackson.educen.models.dto.Score.Score;
+import com.jackson.educen.models.dto.Score.ScoreDTO;
+import com.jackson.educen.models.dto.Score.UserScoreDTO;
 
 import java.util.List;
 

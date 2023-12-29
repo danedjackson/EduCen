@@ -1,14 +1,16 @@
 package com.jackson.educen.services.impl;
 
 import com.jackson.educen.documents.UserDocument;
+import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.documents.FileDocument;
-import com.jackson.educen.models.dto.File;
+import com.jackson.educen.models.Role;
+import com.jackson.educen.models.dto.User.User;
+import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.repositories.IFileRepository;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.ITeacherService;
-import com.jackson.educen.services.IUserService;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,11 +29,15 @@ public class TeacherService implements ITeacherService {
 
     private final IFileRepository documentRepository;
     private final IUserRepository userRepository;
+    private final UserService userService;
+    private final IUserMapper userMapper;
     private final ILogger logger;
 
-    public TeacherService(IFileRepository documentRepository, IUserRepository userRepository, ILogger logger) {
+    public TeacherService(IFileRepository documentRepository, IUserRepository userRepository, UserService userService, IUserMapper userMapper, ILogger logger) {
         this.documentRepository = documentRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
+        this.userMapper = userMapper;
         this.logger = logger;
     }
     @Override
@@ -134,6 +142,28 @@ public class TeacherService implements ITeacherService {
                 "Updated record for document"
         );
     }
+
+    @Override
+    public ApiResponse<User> getStudentById(String id) {
+        return userService.getUserById(id);
+    }
+
+    @Override
+    public ApiResponse<List<User>> getAllStudents() {
+        return userService.getAllUsersByRole(Role.STUDENT.name());
+    }
+
+    @Override
+    public ApiResponse<User> addNewStudent(UserDTO user) {
+        user.setRole(Role.STUDENT);
+        return userService.addNewUser(user);
+    }
+
+    @Override
+    public ApiResponse<User> editStudentDetails(UserDTO user) {
+        return userService.editUserDetails(user);
+    }
+
 
     private String cleanFileName(String fileName) {
         int dotIndex = fileName.lastIndexOf(".");

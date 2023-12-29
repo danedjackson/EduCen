@@ -3,8 +3,9 @@ package com.jackson.educen.services.impl;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.ApiResponse;
-import com.jackson.educen.models.dto.User;
-import com.jackson.educen.models.dto.UserDTO;
+import com.jackson.educen.models.Role;
+import com.jackson.educen.models.dto.User.User;
+import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
@@ -31,6 +32,17 @@ public class UserService implements IUserService {
         this.logger = logger;
     }
 
+    // JWT
+    @Override
+    public UserDetailsService userDetailsService(){
+        return new UserDetailsService() {
+            @Override
+            public UserDetails loadUserByUsername(String userEmail) throws UsernameNotFoundException {
+                return userRepository.findByEmail(userEmail);
+            }
+        };
+    }
+
     @Override
     public ApiResponse<User> getUserById(String id) {
         Optional<UserDocument> userDocument =  userRepository.findById(id);
@@ -52,14 +64,14 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ApiResponse<List<User>> getAllUsersOfType(int typeId) {
-        List<UserDocument> userDocumentList = userRepository.findAllUsersGivenTypeId(typeId);
+    public ApiResponse<List<User>> getAllUsersByRole(String role) {
+        List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole(role);
         if(userDocumentList.isEmpty()) {
-            logger.infoLog("User Document with type ID " + typeId +" could not be found in the database");
+            logger.infoLog("User Document with role " + role +" could not be found in the database");
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
                     null,
-                    "Could not find any records for given type ID"
+                    "Could not find any records for given role"
             );
         }
         List<User> userList = new ArrayList<>();
@@ -67,17 +79,26 @@ public class UserService implements IUserService {
             userList.add(userMapper.userDocumentToUser(userDocument));
         });
 
-        logger.infoLog("Returning all users with type " + typeId + " from the database");
+        logger.infoLog("Returning all users with role " + role + " from the database");
         return new ApiResponse<>(
                 HttpStatus.OK,
                 userList,
-                "Records found for type ID: " + typeId
+                "Records found for role: " + role
         );
     }
 
     @Override
     public ApiResponse<User> addNewUser(UserDTO user) {
-        UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
+        UserDocument savedDocument = userRepository.findByEmail(user.getEmail());
+        if(savedDocument.getEmail() != null){
+            logger.errorLog("Count not add a new user as user already exists");
+            return new ApiResponse<>(
+                    HttpStatus.CONFLICT,
+                    null,
+                    "Record already exists"
+            );
+        }
+        savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
         if(null == savedDocument.getId()) {
             logger.errorLog("Could not insert user information with name '"+ user.getFirstName() +"' in the database");
             return new ApiResponse<>(
@@ -112,16 +133,5 @@ public class UserService implements IUserService {
                 userMapper.userDocumentToUser(savedDocument),
                 "Successfully edited record with ID: " + savedDocument.getId()
         );
-    }
-
-    // JWT
-    @Override
-    public UserDetailsService userDetailsService(){
-        return new UserDetailsService() {
-            @Override
-            public UserDetails loadUserByUsername(String userEmail) throws UsernameNotFoundException {
-                return userRepository.findByEmail(userEmail);
-            }
-        };
     }
 }

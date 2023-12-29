@@ -42,12 +42,8 @@ public class UserDocument implements UserDetails {
     private String zipCode;
     @Field("date_registered")
     private LocalDate dateRegistered;
-    @Field("type")
-    private int type;
     @Field("grade")
     private String grade;
-    @Field("access")
-    private String access;
     @Field("username")
     private String username;
     @Field("password")
@@ -60,6 +56,7 @@ public class UserDocument implements UserDetails {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
+    //TODO: Sort out these please
     @Override
     public boolean isAccountNonExpired() {
         return true;

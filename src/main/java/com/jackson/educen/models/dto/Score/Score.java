@@ -1,4 +1,4 @@
-package com.jackson.educen.models.dto;
+package com.jackson.educen.models.dto.Score;
 
 import lombok.Data;
 import java.time.LocalDate;
