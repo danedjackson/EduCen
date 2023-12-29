@@ -72,6 +72,9 @@ public class AuthenticationService implements IAuthenticationService {
             var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
 
             SignInResponse signInResponse = new SignInResponse();
+            signInResponse.setId(user.getId());
+            signInResponse.setFirstName(user.getFirstName());
+            signInResponse.setRole(user.getRole());
             signInResponse.setToken(jwt);
             signInResponse.setRefreshToken(refreshToken);
 
