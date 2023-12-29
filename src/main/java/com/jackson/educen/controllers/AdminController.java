@@ -26,7 +26,8 @@ public class AdminController {
     @PostMapping("/add-teacher")
     public ApiResponse<User> addUser(@RequestBody UserDTO user) {
         // ADMINS (Administrators) create new USER(Teacher) documents
-        return null;
+        user.setRole(Role.TEACHER);
+        return userService.addNewUser(user);
     }
 
     @GetMapping("/teachers")
