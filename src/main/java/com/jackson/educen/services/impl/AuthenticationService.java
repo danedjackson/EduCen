@@ -75,6 +75,7 @@ public class AuthenticationService implements IAuthenticationService {
             signInResponse.setId(user.getId());
             signInResponse.setFirstName(user.getFirstName());
             signInResponse.setRole(user.getRole());
+            signInResponse.setGrade(user.getGrade());
             signInResponse.setToken(jwt);
             signInResponse.setRefreshToken(refreshToken);
 

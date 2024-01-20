@@ -15,7 +15,7 @@ public interface IScoreRepository extends MongoRepository<ScoreDocument, String>
     List<ScoreDocument> findAllScoresGivenIdGrade(String studentId, String grade);
     @Query("{'student_id': ?0}")
     List<ScoreDocument> findAllStudentScores(String studentId);
-    @Query("{'grade': ?0")
+    @Query("{'grade': ?0}")
     List<ScoreDocument> findAllScoresGivenGrade(String grade);
     @Query("{'_id': ?0}")
     Optional<ScoreDocument> findScoreById(ObjectId id);

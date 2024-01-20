@@ -8,6 +8,7 @@ public class SignInResponse {
     private String id;
     private String firstName;
     private Role role;
+    private String grade;
     private String token;
     private String refreshToken;
 }
