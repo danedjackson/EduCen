@@ -1,12 +1,15 @@
 package com.jackson.educen.services.impl;
 
 import com.jackson.educen.documents.UserDocument;
+import com.jackson.educen.mappers.IFileMapper;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.documents.FileDocument;
 import com.jackson.educen.models.Role;
+import com.jackson.educen.models.dto.File;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
+import com.jackson.educen.models.dto.User.UserFile;
 import com.jackson.educen.repositories.IFileRepository;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
@@ -32,13 +35,15 @@ public class TeacherService implements ITeacherService {
     private final IUserRepository userRepository;
     private final UserService userService;
     private final IUserMapper userMapper;
+    private final IFileMapper fileMapper;
     private final ILogger logger;
 
-    public TeacherService(IFileRepository documentRepository, IUserRepository userRepository, UserService userService, IUserMapper userMapper, ILogger logger) {
+    public TeacherService(IFileRepository documentRepository, IUserRepository userRepository, UserService userService, IUserMapper userMapper, IFileMapper fileMapper, ILogger logger) {
         this.documentRepository = documentRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.userMapper = userMapper;
+        this.fileMapper = fileMapper;
         this.logger = logger;
     }
     @Override
@@ -120,8 +125,14 @@ public class TeacherService implements ITeacherService {
         );
     }
 
+    /*
+    So in summary, this takes no inputs, retrieves uploaded documents and their teacher IDs,
+    finds the teacher user data for those IDs, transforms the user data to simplified User objects,
+    and returns the list of teachers who have uploaded lesson plan documents. The main logic is
+    around aggregating and transforming the data from documents to teacher users.
+     */
     @Override
-    public ApiResponse<List<User>> getAllTeacherPlans() {
+    public ApiResponse<List<UserFile>> getAllTeacherPlans() {
         List<FileDocument> documents = documentRepository.findAll();
 
         HashSet<String> teacherIds = new HashSet<>();
@@ -143,12 +154,25 @@ public class TeacherService implements ITeacherService {
                     "No documents found"
             );
         }
-        List<User> teachers = new ArrayList<>();
+        List<UserFile> teachers = new ArrayList<>();
 
         // Transforming raw user data
         teachersWithDocuments.forEach(document -> {
-            teachers.add(userMapper.userDocumentToUser(document));
+            teachers.add(userMapper.userDocumentToUserFile(document));
         });
+
+        // Populate files for each teacher
+        for(UserFile teacher : teachers) {
+            List<File> files = new ArrayList<>();
+
+            for (FileDocument doc : documents) {
+                if (doc.getTeacherId().equals(teacher.getId())) {
+                    File file = fileMapper.fileDocumentToFile(doc);
+                    files.add(file);
+                }
+            }
+            teacher.setLessonPlans(files);
+        }
 
         if(teachers.isEmpty()){
             return new ApiResponse<>(

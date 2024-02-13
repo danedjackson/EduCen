@@ -6,6 +6,7 @@ import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Role;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
+import com.jackson.educen.models.dto.User.UserFile;
 import com.jackson.educen.services.ITeacherService;
 import com.jackson.educen.services.IUserService;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +43,7 @@ public class AdminController {
     }
 
     @GetMapping("/plans")
-    public ApiResponse<List<User>> getAllPlans() {
+    public ApiResponse<List<UserFile>> getAllPlans() {
         return teacherService.getAllTeacherPlans();
     }
 }

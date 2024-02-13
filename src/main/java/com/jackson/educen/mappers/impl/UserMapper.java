@@ -4,6 +4,7 @@ import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
+import com.jackson.educen.models.dto.User.UserFile;
 import com.jackson.educen.utils.Util;
 import org.springframework.stereotype.Component;
 
@@ -65,5 +66,21 @@ public class UserMapper implements IUserMapper {
         userDocument.setUsername(userDTO.getEmail());
 
         return userDocument;
+    }
+
+    @Override
+    public UserFile userDocumentToUserFile(UserDocument userDocument) {
+        if (userDocument.getId() == null){
+            return new UserFile();
+        }
+        UserFile userFile = new UserFile();
+        userFile.setId(userDocument.getId());
+        userFile.setFirstName(userDocument.getFirstName());
+        userFile.setMiddleName(userDocument.getMiddleName());
+        userFile.setLastName(userDocument.getLastName());
+        userFile.setEmail(userDocument.getEmail());
+        userFile.setGrade(userDocument.getGrade());
+
+        return userFile;
     }
 }
