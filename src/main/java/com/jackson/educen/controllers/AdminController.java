@@ -50,6 +50,6 @@ public class AdminController {
 
     @GetMapping("/plans")
     public ApiResponse<List<UserFile>> getAllPlans() {
-        return teacherService.getAllTeacherPlans();
+        return teacherService.getAllTeacherPlans(   );
     }
 }

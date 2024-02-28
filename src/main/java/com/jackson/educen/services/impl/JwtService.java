@@ -18,10 +18,20 @@ import java.util.function.Function;
 @Service
 public class JwtService implements IJwtService{
     public String generateToken(UserDocument userDocument) {
+        // Create claims
+        Claims claims = Jwts.claims().setSubject(userDocument.getEmail());
+        // Add user role as a claim
+        claims.put("role", userDocument.getRole());
+
+        // Set issued and expiration dates
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 1_800_000);
+
+        // Generate token with claims
         return Jwts.builder()
-                .setSubject(userDocument.getEmail())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1_800_000))
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -29,6 +39,11 @@ public class JwtService implements IJwtService{
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> (String) claims.get("role"));
+    }
+
     private<T> T extractClaim(String token, Function<Claims, T> claimsResolvers) {
         final Claims claims = extractAllClaims(token);
         return claimsResolvers.apply(claims);

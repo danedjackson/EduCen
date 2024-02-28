@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String authHeader = request.getHeader("Authorization");
             final String jwt;
             final String userEmail;
+            final String userRole;
 
             if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
@@ -46,6 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Extract information from the JWT
             jwt = authHeader.substring(7);
             userEmail = jwtService.extractUsername(jwt);
+            userRole = jwtService.extractRole(jwt);
 
             // Validate information from JWT
             if (StringUtils.isNotEmpty(userEmail) && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -56,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
+                            userDetails, null, AuthorityUtils.createAuthorityList(userRole)
                     );
 
                     token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

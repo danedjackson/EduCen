@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 public interface IJwtService {
     String extractUsername(String token);
+    String extractRole(String token);
     String generateToken(UserDocument userDocument);
     public boolean isTokenValid(String token, UserDetails userDetails);
 
