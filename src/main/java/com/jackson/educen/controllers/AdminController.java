@@ -4,6 +4,7 @@ package com.jackson.educen.controllers;
 import com.jackson.educen.documents.FileDocument;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Role;
+import com.jackson.educen.models.dto.File;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.models.dto.User.UserFile;
@@ -40,6 +41,11 @@ public class AdminController {
     @PostMapping("/update-plan/{id}")
     public ApiResponse<String> updateFile(@RequestBody FileDocument fileInfo) {
         return teacherService.updateFile(fileInfo);
+    }
+
+    @PostMapping("/update-plans")
+    public ApiResponse<List<FileDocument>> updatePlans(@RequestBody List<File> files) {
+        return teacherService.updateFileComments(files);
     }
 
     @GetMapping("/plans")

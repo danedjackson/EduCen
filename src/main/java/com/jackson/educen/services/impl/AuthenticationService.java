@@ -70,6 +70,7 @@ public class AuthenticationService implements IAuthenticationService {
 
             var jwt = jwtService.generateToken(user);
             var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
+            // TODO: Set all of these within jwtService.generateToken as claims
 
             SignInResponse signInResponse = new SignInResponse();
             signInResponse.setId(user.getId());

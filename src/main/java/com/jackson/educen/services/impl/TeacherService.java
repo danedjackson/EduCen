@@ -213,6 +213,36 @@ public class TeacherService implements ITeacherService {
     }
 
     @Override
+    public ApiResponse<List<FileDocument>> updateFileComments(List<File> plans) {
+        try {
+            List<FileDocument> plansToSave = new ArrayList<>();
+            plans.forEach(plan -> {
+                Optional<FileDocument> document = documentRepository.findById(cleanFileName(plan.getId()));
+                if(document.isPresent()) {
+                    FileDocument currentDoc = document.get();
+                    currentDoc.setComments(plan.getComments());
+                    currentDoc.setChecked(true);
+                    plansToSave.add(currentDoc);
+                }
+            });
+
+            documentRepository.saveAll(plansToSave);
+
+            return new ApiResponse<>(
+                    HttpStatus.OK,
+                    plansToSave,
+                    "Updated record for document"
+            );
+        } catch(Exception e){
+            logger.errorLog("An error occurred updating comments for lesson plans: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    "Failed to update lesson plan comments"
+            );
+        }
+    }
+    @Override
     public ApiResponse<User> getStudentById(String id) {
         return userService.getUserById(id);
     }
