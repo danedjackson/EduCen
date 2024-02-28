@@ -10,6 +10,7 @@ import com.jackson.educen.models.dto.File;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.models.dto.User.UserFile;
+import com.jackson.educen.models.requests.UpdatePlanRequest;
 import com.jackson.educen.repositories.IFileRepository;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
@@ -23,10 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class TeacherService implements ITeacherService {
@@ -213,18 +211,23 @@ public class TeacherService implements ITeacherService {
     }
 
     @Override
-    public ApiResponse<List<FileDocument>> updateFileComments(List<File> plans) {
+    public ApiResponse<List<FileDocument>> updateFileComments(UpdatePlanRequest planComments) {
         try {
             List<FileDocument> plansToSave = new ArrayList<>();
-            plans.forEach(plan -> {
-                Optional<FileDocument> document = documentRepository.findById(cleanFileName(plan.getId()));
-                if(document.isPresent()) {
+
+            // Iterate over the keys (plan IDs) in the map
+            for (String planId : planComments.getPlanComments().keySet()) {
+                String comments = planComments.getPlanComments().get(planId);
+
+                // Use planId and comments as needed
+                Optional<FileDocument> document = documentRepository.findById(cleanFileName(planId));
+                if (document.isPresent()) {
                     FileDocument currentDoc = document.get();
-                    currentDoc.setComments(plan.getComments());
+                    currentDoc.setComments(comments);
                     currentDoc.setChecked(true);
                     plansToSave.add(currentDoc);
                 }
-            });
+            }
 
             documentRepository.saveAll(plansToSave);
 

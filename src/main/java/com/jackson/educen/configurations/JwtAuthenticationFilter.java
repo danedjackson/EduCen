@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Extract information from the JWT
             jwt = authHeader.substring(7);
             userEmail = jwtService.extractUsername(jwt);
-            userRole = jwtService.extractRole(jwt);
+            //userRole = jwtService.extractRole(jwt);
 
             // Validate information from JWT
             if (StringUtils.isNotEmpty(userEmail) && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -58,8 +58,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
+                    // Use role retrieved from JWT
+//                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+//                            userDetails, null, AuthorityUtils.createAuthorityList(userRole)
+//                    );
+                    // Use role retrieved from db
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, AuthorityUtils.createAuthorityList(userRole)
+                            userDetails, null, userDetails.getAuthorities()
                     );
 
                     token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

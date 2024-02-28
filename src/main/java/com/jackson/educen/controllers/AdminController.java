@@ -8,11 +8,13 @@ import com.jackson.educen.models.dto.File;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.models.dto.User.UserFile;
+import com.jackson.educen.models.requests.UpdatePlanRequest;
 import com.jackson.educen.services.ITeacherService;
 import com.jackson.educen.services.IUserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -44,8 +46,10 @@ public class AdminController {
     }
 
     @PostMapping("/update-plans")
-    public ApiResponse<List<FileDocument>> updatePlans(@RequestBody List<File> files) {
-        return teacherService.updateFileComments(files);
+    public ApiResponse<List<FileDocument>> updatePlans(@RequestBody Map<String, String> request) {
+        UpdatePlanRequest planComments = new UpdatePlanRequest();
+        planComments.setPlanComments(request);
+        return teacherService.updateFileComments(planComments);
     }
 
     @GetMapping("/plans")
