@@ -8,6 +8,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,9 @@ import java.util.function.Function;
 
 @Service
 public class JwtService implements IJwtService{
-    @Autowired
-    private Environment env;
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     public String generateToken(UserDocument userDocument) {
         // Create claims
@@ -55,7 +57,6 @@ public class JwtService implements IJwtService{
     }
 
     private Key getSignKey(){
-        String jwtSecret = env.getProperty("jwt.secret");
         byte[] key = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(key);
     }
