@@ -3,8 +3,10 @@ package com.jackson.educen.configurations;
 import com.jackson.educen.models.Role;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -28,9 +30,12 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@PropertySource("classpath:application.properties")
 public class SecurityConfiguration implements WebMvcConfigurer {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final IUserService userService;
+    @Value("${spring.cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter, IUserService userService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -40,7 +45,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173")  // Update with your React app's origin
+                .allowedOrigins(allowedOrigins)  // Update with your React app's origin
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
