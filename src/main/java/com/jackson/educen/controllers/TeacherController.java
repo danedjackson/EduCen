@@ -45,7 +45,7 @@ public class TeacherController {
         return teacherService.getAllStudents();
     }
 
-    @PostMapping("/add")
+    @PostMapping("/create-student")
     public ApiResponse<User> addUser(@RequestBody UserDTO user) {
         // USERS (Teachers) create new student documents
         user.setRole(Role.STUDENT);

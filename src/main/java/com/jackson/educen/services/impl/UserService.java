@@ -89,8 +89,14 @@ public class UserService implements IUserService {
 
     @Override
     public ApiResponse<User> addNewUser(UserDTO user) {
+        user.setFirstName(user.getFirstName().trim());
+        user.setLastName(user.getLastName().trim());
         UserDocument savedDocument = userRepository.findByEmail(user.getEmail());
-        if(savedDocument.getEmail() != null){
+        // If email is not found, check if the user's first and last name exists
+        if(savedDocument == null) {
+            savedDocument = userRepository.findByFirstNameAndLastName(user.getFirstName(), user.getLastName());
+        }
+        if(savedDocument != null) {
             logger.errorLog("Count not add a new user as user already exists");
             return new ApiResponse<>(
                     HttpStatus.CONFLICT,
