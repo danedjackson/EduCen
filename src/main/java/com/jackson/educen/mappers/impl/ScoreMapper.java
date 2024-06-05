@@ -23,6 +23,7 @@ public class ScoreMapper implements IScoreMapper {
         score.setGrade(scoreDocument.getGrade());
         score.setScore(scoreDocument.getScore());
         score.setDateRecorded(scoreDocument.getDateRecorded());
+        score.setDateAdministered(scoreDocument.getDateAdministered());
         score.setAssignmentId(scoreDocument.getAssignmentId());
         score.setComment(scoreDocument.getComment());
         score.setScoreId(scoreDocument.getId());
@@ -44,6 +45,7 @@ public class ScoreMapper implements IScoreMapper {
         scoreDocument.setStudentId(scoreDTO.getStudentId());
         scoreDocument.setTeacherId(scoreDTO.getTeacherId());
         scoreDocument.setDateRecorded(scoreDTO.getDateRecorded());
+        scoreDocument.setDateAdministered(scoreDTO.getDateAdministered());
         scoreDocument.setComment(scoreDTO.getComment());
         scoreDocument.setId(scoreDTO.getScoreId());
 
@@ -65,6 +67,7 @@ public class ScoreMapper implements IScoreMapper {
         scoreDTO.setAssignmentId(scoreDocument.getAssignmentId());
         scoreDTO.setTeacherId(scoreDocument.getTeacherId());
         scoreDTO.setDateRecorded(scoreDocument.getDateRecorded());
+        scoreDTO.setDateAdministered(scoreDocument.getDateAdministered());
 
         return scoreDTO;
     }
@@ -91,7 +94,7 @@ public class ScoreMapper implements IScoreMapper {
         userScoreDTO.setAssignmentId(scoreDocument.getAssignmentId());
         userScoreDTO.setSubject(scoreDocument.getSubject());
         userScoreDTO.setTeacherId(scoreDocument.getTeacherId());
-
+        userScoreDTO.setDateAdministered(scoreDocument.getDateAdministered());
         return userScoreDTO;
     }
 }

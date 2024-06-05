@@ -16,6 +16,7 @@ public class    ScoreDTO {
     private String assignmentId;
     private String score;
     private LocalDate dateRecorded;
+    private LocalDate dateAdministered;
     private String teacherId;
     private String comment;
 }
