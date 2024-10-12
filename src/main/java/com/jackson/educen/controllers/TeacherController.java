@@ -52,8 +52,9 @@ public class TeacherController {
         return teacherService.addNewStudent(user);
     }
 
-    @PatchMapping("/edit")
+    @PutMapping("/update-student")
     public ApiResponse<User> editUser(@RequestBody UserDTO user) {
+        user.setRole(Role.STUDENT);
         return teacherService.editStudentDetails(user);
     }
 }
