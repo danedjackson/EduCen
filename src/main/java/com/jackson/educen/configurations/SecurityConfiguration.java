@@ -59,6 +59,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                         .permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAuthority(Role.ADMIN.name())
                         .requestMatchers("/api/v1/teacher/**").hasAnyAuthority(Role.TEACHER.name(), Role.ADMIN.name())
+                        .requestMatchers("/api/v1/subjects/**").hasAnyAuthority(Role.TEACHER.name(), Role.ADMIN.name())
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()).addFilterBefore(

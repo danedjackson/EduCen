@@ -1,9 +1,11 @@
 package com.jackson.educen.services;
 
+import com.jackson.educen.documents.SubjectDocument;
 import com.jackson.educen.models.ApiResponse;
 
 import java.util.List;
 
 public interface ISubjectService {
-    ApiResponse<List<String>> getAllSubjects();
+    ApiResponse<List<SubjectDocument>> getAllSubjects();
+    ApiResponse<SubjectDocument> saveSubject(String subjectName);
 }

@@ -97,7 +97,7 @@ public class UserService implements IUserService {
             savedDocument = userRepository.findByFirstNameAndLastName(user.getFirstName(), user.getLastName());
         }
         if(savedDocument != null) {
-            logger.errorLog("Count not add a new user as user already exists");
+            logger.errorLog("Could not add a new user as user already exists");
             return new ApiResponse<>(
                     HttpStatus.CONFLICT,
                     null,

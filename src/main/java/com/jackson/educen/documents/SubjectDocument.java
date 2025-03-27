@@ -13,5 +13,9 @@ import java.util.List;
 public class SubjectDocument {
     @Id
     private String id;
-    private List<String> subjects;
+    private String subjectName;
+
+    public SubjectDocument(String subjectName) {
+        this.subjectName = subjectName;
+    }
 }

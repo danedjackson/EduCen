@@ -20,10 +20,10 @@ public class SubjectService implements ISubjectService {
     }
 
     @Override
-    public ApiResponse<List<String>> getAllSubjects() {
+    public ApiResponse<List<SubjectDocument>> getAllSubjects() {
         try {
-            SubjectDocument subjectDocument = subjectRepository.findAll().get(0);
-            if (null == subjectDocument.getSubjects()) {
+            List<SubjectDocument> subjectDocuments = subjectRepository.findAll();
+            if (subjectDocuments.isEmpty()) {
                 logger.errorLog("Could not fetch subject records from the database");
                 return new ApiResponse<>(
                         HttpStatus.NOT_FOUND,
@@ -34,7 +34,7 @@ public class SubjectService implements ISubjectService {
             logger.infoLog("Successfully fetch subject records from the database");
             return new ApiResponse<>(
                     HttpStatus.OK,
-                    subjectDocument.getSubjects(),
+                    subjectDocuments,
                     "Successfully retrieved subject records from database"
             );
         }catch(Exception e) {
@@ -45,5 +45,39 @@ public class SubjectService implements ISubjectService {
                     "An error occurred while trying to fetch subject records: " + e.getMessage()
             );
         }
+    }
+
+    @Override
+    public ApiResponse<SubjectDocument> saveSubject(String subjectName) {
+        SubjectDocument subjectExists = subjectRepository.findBySubjectName(subjectName);
+        if(subjectExists != null) {
+            logger.errorLog(subjectName +" cannot be created. It already exists.");
+            return new ApiResponse<>(
+                    HttpStatus.CONFLICT,
+                    null,
+                    "Record already exists"
+            );
+        }
+        subjectRepository.save(new SubjectDocument(subjectName));
+
+        subjectExists = subjectRepository.findBySubjectName(subjectName);
+        if (subjectExists == null) {
+            logger.errorLog(subjectName +" was not saved successfully");
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Could not save record"
+            );
+        }
+        logger.infoLog("Successfully inserted subject '"+ subjectExists.getSubjectName() +"' into the database");
+        return new ApiResponse<>(
+            HttpStatus.CREATED,
+            subjectExists,
+            "Successfully created subject: {ID: "
+                    + subjectExists.getId()
+                    +", Name: "
+                    +subjectExists.getSubjectName()
+                    +"}"
+        );
     }
 }

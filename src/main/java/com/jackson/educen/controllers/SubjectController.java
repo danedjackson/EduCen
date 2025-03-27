@@ -1,5 +1,6 @@
 package com.jackson.educen.controllers;
 
+import com.jackson.educen.documents.SubjectDocument;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.ISubjectService;
@@ -23,7 +24,7 @@ public class SubjectController {
     }
 
     @GetMapping("/all")
-    public ApiResponse<List<String>> getAllSubjects() {
+    public ApiResponse<List<SubjectDocument>> getAllSubjects() {
         logger.infoLog("Initiating request to get all subjects");
         return subjectService.getAllSubjects();
     }
