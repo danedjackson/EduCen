@@ -80,4 +80,26 @@ public class SubjectService implements ISubjectService {
                     +"}"
         );
     }
+
+    @Override
+    public ApiResponse<SubjectDocument> removeSubject(String subjectName) {
+        SubjectDocument subject = subjectRepository.findBySubjectName(subjectName);
+        if(subject == null) {
+            logger.errorLog(subjectName +" cannot be deleted. It does not exist.");
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Record does not exist"
+            );
+        }
+        subjectRepository.delete(subject);
+        logger.infoLog("Successfully removed subject '" + subjectName +"'");
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                subject,
+                "Successfully removed '" + subjectName +"'"
+        );
+    }
+
+
 }

@@ -56,4 +56,7 @@ public class AdminController {
     public ApiResponse<List<UserFile>> getAllPlans() {
         return teacherService.getAllTeacherPlans(   );
     }
+
+    @GetMapping("/advance-year")
+    public ApiResponse<Boolean> advanceSchoolYear() { return null; }
 }
