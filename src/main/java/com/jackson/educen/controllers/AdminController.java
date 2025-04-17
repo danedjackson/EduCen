@@ -58,5 +58,5 @@ public class AdminController {
     }
 
     @GetMapping("/advance-year")
-    public ApiResponse<Boolean> advanceSchoolYear() { return null; }
+    public ApiResponse<Boolean> advanceSchoolYear() { return userService.updateSchoolYear(); }
 }

@@ -140,4 +140,34 @@ public class UserService implements IUserService {
                 "Successfully edited record with ID: " + savedDocument.getId()
         );
     }
+
+    @Override
+    public ApiResponse<Boolean> updateSchoolYear() {
+        List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole("STUDENT");
+        if(userDocumentList.isEmpty()) {
+            logger.infoLog("Could not retrieve student records from the database");
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    false,
+                    "Could not find any records for given role"
+            );
+        }
+
+        userDocumentList.forEach(userDocument -> {
+            int currentGrade = Integer.parseInt(userDocument.getGrade());
+            if(currentGrade <= 6) {
+                userDocument.setGrade(String.valueOf(currentGrade + 1));
+            }
+        });
+
+        userRepository.saveAll(userDocumentList);
+        logger.infoLog("Updated grades for " + userDocumentList.size() + " students.");
+        return new ApiResponse<> (
+                HttpStatus.OK,
+                true,
+                "Student grade levels updated successfully"
+        );
+    }
+
+
 }
