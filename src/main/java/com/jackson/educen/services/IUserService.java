@@ -13,5 +13,5 @@ public interface IUserService {
     public ApiResponse<List<User>> getAllUsersByRole(String role);
     public ApiResponse<User> addNewUser(UserDTO user);
     public ApiResponse<User> editUserDetails(UserDTO user);
-    public ApiResponse<Boolean> updateSchoolYear();
+    public ApiResponse<List<User>> updateSchoolYear();
 }

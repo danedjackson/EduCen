@@ -142,29 +142,32 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ApiResponse<Boolean> updateSchoolYear() {
+    public ApiResponse<List<User>> updateSchoolYear() {
         List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole("STUDENT");
         if(userDocumentList.isEmpty()) {
             logger.infoLog("Could not retrieve student records from the database");
             return new ApiResponse<>(
                     HttpStatus.NOT_FOUND,
-                    false,
+                    null,
                     "Could not find any records for given role"
             );
         }
 
+        List<User> studentsPendingDeletion = new ArrayList<>();
         userDocumentList.forEach(userDocument -> {
             int currentGrade = Integer.parseInt(userDocument.getGrade());
-            if(currentGrade <= 6) {
+            //TODO: Make environment variable for max grade?
+            if (currentGrade < 7) {
                 userDocument.setGrade(String.valueOf(currentGrade + 1));
+            } else {
+                studentsPendingDeletion.add(userMapper.userDocumentToUser(userDocument));
             }
         });
-
-        userRepository.saveAll(userDocumentList);
+        //userRepository.saveAll(userDocumentList);
         logger.infoLog("Updated grades for " + userDocumentList.size() + " students.");
         return new ApiResponse<> (
                 HttpStatus.OK,
-                true,
+                studentsPendingDeletion,
                 "Student grade levels updated successfully"
         );
     }
