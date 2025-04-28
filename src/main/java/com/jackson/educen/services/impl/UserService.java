@@ -163,7 +163,7 @@ public class UserService implements IUserService {
                 studentsPendingDeletion.add(userMapper.userDocumentToUser(userDocument));
             }
         });
-        //userRepository.saveAll(userDocumentList);
+        userRepository.saveAll(userDocumentList);
         logger.infoLog("Updated grades for " + userDocumentList.size() + " students.");
         return new ApiResponse<> (
                 HttpStatus.OK,
