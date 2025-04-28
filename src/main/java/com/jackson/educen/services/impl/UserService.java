@@ -3,16 +3,13 @@ package com.jackson.educen.services.impl;
 import com.jackson.educen.documents.UserDocument;
 import com.jackson.educen.mappers.IUserMapper;
 import com.jackson.educen.models.ApiResponse;
-import com.jackson.educen.models.Role;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -35,142 +32,181 @@ public class UserService implements IUserService {
     // JWT
     @Override
     public UserDetailsService userDetailsService(){
-        return new UserDetailsService() {
-            @Override
-            public UserDetails loadUserByUsername(String userEmail) throws UsernameNotFoundException {
-                return userRepository.findByEmail(userEmail);
-            }
-        };
+        return userRepository::findByEmail;
     }
 
     @Override
     public ApiResponse<User> getUserById(String id) {
-        Optional<UserDocument> userDocument =  userRepository.findById(id);
-        if (userDocument.isEmpty()) {
-            logger.infoLog("User Document with ID " + id +" could not be found in the database");
+        try {
+            Optional<UserDocument> userDocument = userRepository.findById(id);
+            if (userDocument.isEmpty()) {
+                logger.infoLog("User Document with ID " + id + " could not be found in the database");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        ("Could not find user with ID " + id)
+                );
+            }
+
+            logger.infoLog("Returning User Document with ID " + id + " from the database");
             return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.OK,
+                    userMapper.userDocumentToUser(userDocument.get()),
+                    "Found"
+            );
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while fetching user by ID: " + id + ". Exception: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    ("Could not find user with ID " + id)
+                    "An error occurred while processing the request"
             );
         }
-
-        logger.infoLog("Returning User Document with ID " + id +" from the database");
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                userMapper.userDocumentToUser(userDocument.get()),
-                "Found"
-        );
     }
 
     @Override
     public ApiResponse<List<User>> getAllUsersByRole(String role) {
-        List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole(role);
-        if(userDocumentList.isEmpty()) {
-            logger.infoLog("User Document with role " + role +" could not be found in the database");
+        try {
+            List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole(role);
+            if (userDocumentList.isEmpty()) {
+                logger.infoLog("User Document with role " + role + " could not be found in the database");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "Could not find any records for given role"
+                );
+            }
+            List<User> userList = new ArrayList<>();
+            userDocumentList.forEach(userDocument -> userList.add(userMapper.userDocumentToUser(userDocument)));
+
+            logger.infoLog("Returning all users with role " + role + " from the database");
             return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.OK,
+                    userList,
+                    "Records found for role: " + role
+            );
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while fetching users by role: " + role + ". Exception: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    "Could not find any records for given role"
+                    "An error occurred while processing the request"
             );
         }
-        List<User> userList = new ArrayList<>();
-        userDocumentList.forEach(userDocument -> {
-            userList.add(userMapper.userDocumentToUser(userDocument));
-        });
-
-        logger.infoLog("Returning all users with role " + role + " from the database");
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                userList,
-                "Records found for role: " + role
-        );
     }
 
     @Override
     public ApiResponse<User> addNewUser(UserDTO user) {
-        user.setFirstName(user.getFirstName().trim());
-        user.setLastName(user.getLastName().trim());
-        UserDocument savedDocument = userRepository.findByEmail(user.getEmail());
-        // If email is not found, check if the user's first and last name exists
-        if(savedDocument == null) {
-            savedDocument = userRepository.findByFirstNameAndLastName(user.getFirstName(), user.getLastName());
-        }
-        if(savedDocument != null) {
-            logger.errorLog("Could not add a new user as user already exists");
+        try {
+            user.setFirstName(user.getFirstName().trim());
+            user.setLastName(user.getLastName().trim());
+            UserDocument savedDocument = userRepository.findByEmail(user.getEmail());
+            // If email is not found, check if the user's first and last name exists
+            if (savedDocument == null) {
+                savedDocument = userRepository.findByFirstNameAndLastName(user.getFirstName(), user.getLastName());
+            }
+            if (savedDocument != null) {
+                logger.errorLog("Could not add a new user as user already exists");
+                return new ApiResponse<>(
+                        HttpStatus.CONFLICT,
+                        null,
+                        "Record already exists"
+                );
+            }
+            savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
+            if (null == savedDocument.getId()) {
+                logger.errorLog("Could not insert user information with name '" + user.getFirstName() + "' in the database");
+                return new ApiResponse<>(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        null,
+                        "Could not insert user record"
+                );
+            }
+            logger.infoLog("Successfully inserted user with name '" + user.getFirstName() + "' into the database");
             return new ApiResponse<>(
-                    HttpStatus.CONFLICT,
-                    null,
-                    "Record already exists"
+                    HttpStatus.CREATED,
+                    userMapper.userDocumentToUser(savedDocument),
+                    "Successfully created user with ID: " + savedDocument.getId()
             );
-        }
-        savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
-        if(null == savedDocument.getId()) {
-            logger.errorLog("Could not insert user information with name '"+ user.getFirstName() +"' in the database");
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while adding a new user. Exception: " + e.getMessage());
             return new ApiResponse<>(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    "Could not insert user record"
+                    "An error occurred while processing the request"
             );
         }
-        logger.infoLog("Successfully inserted user with name '"+ user.getFirstName() +"' into the database");
-        return new ApiResponse<>(
-                HttpStatus.CREATED,
-                userMapper.userDocumentToUser(savedDocument),
-                "Successfully created user with ID: " + savedDocument.getId()
-        );
     }
 
     @Override
     public ApiResponse<User> editUserDetails(UserDTO user) {
-        if(!userRepository.existsById(user.getId())) {
-            logger.errorLog("Could not find user with the ID '" +user.getId()+"' to edit");
+        try {
+            if (!userRepository.existsById(user.getId())) {
+                logger.errorLog("Could not find user with the ID '" + user.getId() + "' to edit");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "No records found with given ID: " + user.getId()
+                );
+            }
+            logger.infoLog("User information was found for ID '" + user.getId() + "'. Editing information");
+            UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
+            logger.infoLog("Successfully edited information for user ID '" + user.getId() + "'. Returning updated record.");
             return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.OK,
+                    userMapper.userDocumentToUser(savedDocument),
+                    "Successfully edited record with ID: " + savedDocument.getId()
+            );
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while editing user details for ID: " + user.getId() + ". Exception: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    "No records found with given ID: " + user.getId()
+                    "An error occurred while processing the request"
             );
         }
-        logger.infoLog("User information was found for ID '"+user.getId()+"'. Editing information");
-        UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
-        logger.infoLog("Successfully edited information for user ID '" + user.getId() + "'. Returning updated record.");
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                userMapper.userDocumentToUser(savedDocument),
-                "Successfully edited record with ID: " + savedDocument.getId()
-        );
     }
 
     @Override
     public ApiResponse<List<User>> updateSchoolYear() {
-        List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole("STUDENT");
-        if(userDocumentList.isEmpty()) {
-            logger.infoLog("Could not retrieve student records from the database");
+        try {
+            List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole("STUDENT");
+            if (userDocumentList.isEmpty()) {
+                logger.infoLog("Could not retrieve student records from the database");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "Could not find any records for given role"
+                );
+            }
+
+            List<User> studentsPendingDeletion = new ArrayList<>();
+            userDocumentList.forEach(userDocument -> {
+                int currentGrade = Integer.parseInt(userDocument.getGrade());
+                //TODO: Make environment variable for max grade?
+                if (currentGrade < 7) {
+                    userDocument.setGrade(String.valueOf(currentGrade + 1));
+                } else {
+                    studentsPendingDeletion.add(userMapper.userDocumentToUser(userDocument));
+                }
+            });
+            userRepository.saveAll(userDocumentList);
+            logger.infoLog("Updated grades for " + userDocumentList.size() + " students.");
             return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.OK,
+                    studentsPendingDeletion,
+                    "Student grade levels updated successfully"
+            );
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while updating school year. Exception: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    "Could not find any records for given role"
+                    "An error occurred while processing the request"
             );
         }
-
-        List<User> studentsPendingDeletion = new ArrayList<>();
-        userDocumentList.forEach(userDocument -> {
-            int currentGrade = Integer.parseInt(userDocument.getGrade());
-            //TODO: Make environment variable for max grade?
-            if (currentGrade < 7) {
-                userDocument.setGrade(String.valueOf(currentGrade + 1));
-            } else {
-                studentsPendingDeletion.add(userMapper.userDocumentToUser(userDocument));
-            }
-        });
-        userRepository.saveAll(userDocumentList);
-        logger.infoLog("Updated grades for " + userDocumentList.size() + " students.");
-        return new ApiResponse<> (
-                HttpStatus.OK,
-                studentsPendingDeletion,
-                "Student grade levels updated successfully"
-        );
     }
 
 
 }
+
