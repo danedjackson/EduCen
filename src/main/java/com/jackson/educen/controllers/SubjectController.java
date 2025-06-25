@@ -38,4 +38,10 @@ public class SubjectController {
         logger.infoLog("Initiating request to remove subject ["+subjectName+"]");
         return subjectService.removeSubject(subjectName);
     }
+
+    @PutMapping("/edit/{oldSubjectName}/{newSubjectName}")
+    public ApiResponse<SubjectDocument> editSubject(@PathVariable String oldSubjectName, @PathVariable String newSubjectName) {
+        logger.infoLog("Initiating request to edit subject from [" + oldSubjectName + "] to [" + newSubjectName + "]");
+        return subjectService.editSubject(oldSubjectName, newSubjectName);
+    }
 }

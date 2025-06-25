@@ -9,4 +9,5 @@ public interface ISubjectService {
     ApiResponse<List<SubjectDocument>> getAllSubjects();
     ApiResponse<SubjectDocument> saveSubject(String subjectName);
     ApiResponse<SubjectDocument> removeSubject(String subjectName);
+    ApiResponse<SubjectDocument> editSubject(String oldSubjectName, String newSubjectName);
 }

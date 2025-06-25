@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @Service
 public class SubjectService implements ISubjectService {
     private final ISubjectRepository subjectRepository;
@@ -37,7 +38,7 @@ public class SubjectService implements ISubjectService {
                     subjectDocuments,
                     "Successfully retrieved subject records from database"
             );
-        }catch(Exception e) {
+        } catch (Exception e) {
             logger.errorLog("An error occurred while attempting to fetch subject records: " + e.getMessage());
             return new ApiResponse<>(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -49,57 +50,115 @@ public class SubjectService implements ISubjectService {
 
     @Override
     public ApiResponse<SubjectDocument> saveSubject(String subjectName) {
-        SubjectDocument subjectExists = subjectRepository.findBySubjectName(subjectName);
-        if(subjectExists != null) {
-            logger.errorLog(subjectName +" cannot be created. It already exists.");
-            return new ApiResponse<>(
-                    HttpStatus.CONFLICT,
-                    null,
-                    "Record already exists"
-            );
-        }
-        subjectRepository.save(new SubjectDocument(subjectName));
+        try {
+            SubjectDocument subjectExists = subjectRepository.findBySubjectName(subjectName);
+            if (subjectExists != null) {
+                logger.errorLog(subjectName + " cannot be created. It already exists.");
+                return new ApiResponse<>(
+                        HttpStatus.CONFLICT,
+                        null,
+                        "Record already exists"
+                );
+            }
+            subjectRepository.save(new SubjectDocument(subjectName));
 
-        subjectExists = subjectRepository.findBySubjectName(subjectName);
-        if (subjectExists == null) {
-            logger.errorLog(subjectName +" was not saved successfully");
+            subjectExists = subjectRepository.findBySubjectName(subjectName);
+            if (subjectExists == null) {
+                logger.errorLog(subjectName + " was not saved successfully");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "Could not save record"
+                );
+            }
+            logger.infoLog("Successfully inserted subject '" + subjectExists.getSubjectName() + "' into the database");
             return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.CREATED,
+                    subjectExists,
+                    "Successfully created subject: {ID: "
+                            + subjectExists.getId()
+                            + ", Name: "
+                            + subjectExists.getSubjectName()
+                            + "}"
+            );
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while saving subject '" + subjectName + "'. Exception: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    "Could not save record"
+                    "An error occurred while saving the subject: " + e.getMessage()
             );
         }
-        logger.infoLog("Successfully inserted subject '"+ subjectExists.getSubjectName() +"' into the database");
-        return new ApiResponse<>(
-            HttpStatus.CREATED,
-            subjectExists,
-            "Successfully created subject: {ID: "
-                    + subjectExists.getId()
-                    +", Name: "
-                    +subjectExists.getSubjectName()
-                    +"}"
-        );
     }
 
     @Override
     public ApiResponse<SubjectDocument> removeSubject(String subjectName) {
-        SubjectDocument subject = subjectRepository.findBySubjectName(subjectName);
-        if(subject == null) {
-            logger.errorLog(subjectName +" cannot be deleted. It does not exist.");
+        try {
+            SubjectDocument subject = subjectRepository.findBySubjectName(subjectName);
+            if (subject == null) {
+                logger.errorLog(subjectName + " cannot be deleted. It does not exist.");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "Record does not exist"
+                );
+            }
+            subjectRepository.delete(subject);
+            logger.infoLog("Successfully removed subject '" + subjectName + "'");
             return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.OK,
+                    subject,
+                    "Successfully removed '" + subjectName + "'"
+            );
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while removing subject '" + subjectName + "'. Exception: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
-                    "Record does not exist"
+                    "An error occurred while removing the subject: " + e.getMessage()
             );
         }
-        subjectRepository.delete(subject);
-        logger.infoLog("Successfully removed subject '" + subjectName +"'");
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                subject,
-                "Successfully removed '" + subjectName +"'"
-        );
     }
 
+    @Override
+    public ApiResponse<SubjectDocument> editSubject(String oldSubjectName, String newSubjectName) {
+        try {
+            SubjectDocument existingSubject = subjectRepository.findBySubjectName(oldSubjectName);
+            if (existingSubject == null) {
+                logger.errorLog("Subject with name '" + oldSubjectName + "' does not exist and cannot be edited.");
+                return new ApiResponse<>(
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "Subject with name '" + oldSubjectName + "' does not exist."
+                );
+            }
 
+            SubjectDocument duplicateSubject = subjectRepository.findBySubjectName(newSubjectName);
+            if (duplicateSubject != null) {
+                logger.errorLog("Subject with name '" + newSubjectName + "' already exists. Cannot rename.");
+                return new ApiResponse<>(
+                        HttpStatus.CONFLICT,
+                        null,
+                        "Subject with name '" + newSubjectName + "' already exists."
+                );
+            }
+
+            existingSubject.setSubjectName(newSubjectName);
+            subjectRepository.save(existingSubject);
+
+            logger.infoLog("Successfully updated subject name from '" + oldSubjectName + "' to '" + newSubjectName + "'");
+            return new ApiResponse<>(
+                    HttpStatus.OK,
+                    existingSubject,
+                    "Successfully updated subject name."
+            );
+        } catch (Exception e) {
+            logger.errorLog("An error occurred while editing subject name from '" + oldSubjectName + "' to '" + newSubjectName + "'. Exception: " + e.getMessage());
+            return new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    "An error occurred while editing the subject name."
+            );
+        }
+    }
 }
