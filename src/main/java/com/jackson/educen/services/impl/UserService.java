@@ -67,7 +67,7 @@ public class UserService implements IUserService {
     @Override
     public ApiResponse<List<User>> getAllUsersByRole(String role) {
         try {
-            List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole(role);
+            List<UserDocument> userDocumentList = userRepository.findAllActiveUsersGivenRole(role);
             if (userDocumentList.isEmpty()) {
                 logger.infoLog("User Document with role " + role + " could not be found in the database");
                 return new ApiResponse<>(
