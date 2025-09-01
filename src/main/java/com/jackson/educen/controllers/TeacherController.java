@@ -29,9 +29,14 @@ public class TeacherController {
         return teacherService.uploadFile(file);
     }
 
-    @GetMapping("/plans/{id}")
+    @GetMapping("/plan/{id}")
     public ApiResponse<FileDocument> getFile(@PathVariable String id) {
-        return teacherService.getFile(id);
+        return teacherService.getLessonPlan(id);
+    }
+
+    @GetMapping("/plans/{teacherId}")
+    public ApiResponse<List<FileDocument>> getLessonPlans(@PathVariable String teacherId) {
+        return teacherService.getLessonPlans(teacherId);
     }
 
     @GetMapping("/{id}")

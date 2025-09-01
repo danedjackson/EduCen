@@ -105,8 +105,8 @@ public class TeacherService implements ITeacherService {
     }
 
     @Override
-    public ApiResponse<FileDocument> getFile(String id) {
-        Optional<FileDocument> document = documentRepository.findById(id);
+    public ApiResponse<FileDocument> getLessonPlan(String id) {
+        Optional<FileDocument> document = documentRepository.findByTeacherId(id);
         if(document.isEmpty()) {
             logger.errorLog("Could not retrieve document with ID: " + id);
             return new ApiResponse<>(
@@ -119,6 +119,28 @@ public class TeacherService implements ITeacherService {
         return new ApiResponse<>(
                 HttpStatus.OK,
                 fileDocument,
+                "Retrieved document"
+        );
+    }
+
+    @Override
+    public ApiResponse<List<FileDocument>> getLessonPlans(String id) {
+        Optional<FileDocument> documents = documentRepository.findByTeacherId(id);
+        if(documents.isEmpty()) {
+            logger.errorLog("Could not retrieve document with ID: " + id);
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Unable to retrieve document"
+            );
+        }
+        List<FileDocument> lessonPlans = documents
+                .map(Collections::singletonList)
+                .orElse(Collections.emptyList());
+
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                lessonPlans,
                 "Retrieved document"
         );
     }
