@@ -11,9 +11,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface ITeacherService {
-    public ApiResponse<String> uploadFile (MultipartFile file);
+    public ApiResponse<FileDocument> uploadFile (MultipartFile file);
     public ApiResponse<FileDocument> getLessonPlan(String id);
     public ApiResponse<List<FileDocument>> getLessonPlans(String id);
+    public ApiResponse<List<FileDocument>> getTeacherLessonPlans(String id);
     public ApiResponse<List<UserFile>> getAllTeacherPlans();
     public ApiResponse<String> updateFile(FileDocument fileInfo);
     public ApiResponse<List<FileDocument>> updateFileComments(UpdatePlanRequest planComments);

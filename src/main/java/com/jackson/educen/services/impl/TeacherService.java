@@ -45,7 +45,7 @@ public class TeacherService implements ITeacherService {
         this.logger = logger;
     }
     @Override
-    public ApiResponse<String> uploadFile(MultipartFile file) {
+    public ApiResponse<FileDocument> uploadFile(MultipartFile file) {
         String teacherId = file.getOriginalFilename();
         if (teacherId == null || teacherId.isEmpty()) {
             logger.infoLog("Invalid file name for file provided");
@@ -99,14 +99,14 @@ public class TeacherService implements ITeacherService {
         logger.infoLog("Stored document with ID: " + teacherDetails.getId());
         return new ApiResponse<>(
                 HttpStatus.OK,
-                fileDocument.getId(),
+                fileDocument,
                 "Successfully stored document to database"
         );
     }
 
     @Override
     public ApiResponse<FileDocument> getLessonPlan(String id) {
-        Optional<FileDocument> document = documentRepository.findByTeacherId(id);
+        Optional<FileDocument> document = documentRepository.findById(id);
         if(document.isEmpty()) {
             logger.errorLog("Could not retrieve document with ID: " + id);
             return new ApiResponse<>(
@@ -125,7 +125,7 @@ public class TeacherService implements ITeacherService {
 
     @Override
     public ApiResponse<List<FileDocument>> getLessonPlans(String id) {
-        Optional<FileDocument> documents = documentRepository.findByTeacherId(id);
+        Optional<FileDocument> documents = documentRepository.findById(id);
         if(documents.isEmpty()) {
             logger.errorLog("Could not retrieve document with ID: " + id);
             return new ApiResponse<>(
@@ -134,6 +134,28 @@ public class TeacherService implements ITeacherService {
                     "Unable to retrieve document"
             );
         }
+        List<FileDocument> lessonPlans = documents
+                .map(Collections::singletonList)
+                .orElse(Collections.emptyList());
+
+        return new ApiResponse<>(
+                HttpStatus.OK,
+                lessonPlans,
+                "Retrieved document"
+        );
+    }
+
+    @Override
+    public ApiResponse<List<FileDocument>> getTeacherLessonPlans(String id) {
+        Optional<FileDocument> documents = documentRepository.findAllByTeacherId(id);
+        if(documents.isEmpty()){
+            return new ApiResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    null,
+                    "Could not find teacher lesson plan information."
+            );
+        }
+
         List<FileDocument> lessonPlans = documents
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());

@@ -5,6 +5,7 @@ import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Role;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
+import com.jackson.educen.models.dto.User.UserFile;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.ITeacherService;
 import org.springframework.web.bind.annotation.*;
@@ -25,18 +26,23 @@ public class TeacherController {
         this.logger = logger;
     }
     @PostMapping("/upload")
-    public ApiResponse<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ApiResponse<FileDocument> uploadFile(@RequestParam("file") MultipartFile file) {
         return teacherService.uploadFile(file);
     }
 
-    @GetMapping("/plan/{id}")
-    public ApiResponse<FileDocument> getFile(@PathVariable String id) {
-        return teacherService.getLessonPlan(id);
+    @GetMapping("/plan/{planId}")
+    public ApiResponse<FileDocument> getFile(@PathVariable String planId) {
+        return teacherService.getLessonPlan(planId);
     }
 
-    @GetMapping("/plans/{teacherId}")
-    public ApiResponse<List<FileDocument>> getLessonPlans(@PathVariable String teacherId) {
-        return teacherService.getLessonPlans(teacherId);
+    @GetMapping("/plans/{planId}")
+    public ApiResponse<List<FileDocument>> getLessonPlans(@PathVariable String planId) {
+        return teacherService.getLessonPlans(planId);
+    }
+
+    @GetMapping("/plans/get-teacher-plans/{teacherId}")
+    public ApiResponse<List<FileDocument>> getTeacherLessonPlans(@PathVariable String teacherId) {
+        return teacherService.getTeacherLessonPlans(teacherId);
     }
 
     @GetMapping("/{id}")
