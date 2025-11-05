@@ -8,6 +8,7 @@ import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IUserService;
+import com.jackson.educen.utils.Util;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -41,26 +42,14 @@ public class UserService implements IUserService {
             Optional<UserDocument> userDocument = userRepository.findById(id);
             if (userDocument.isEmpty()) {
                 logger.infoLog("User Document with ID " + id + " could not be found in the database");
-                return new ApiResponse<>(
-                        HttpStatus.NOT_FOUND,
-                        null,
-                        ("Could not find user with ID " + id)
-                );
+                return Util.failure(HttpStatus.NOT_FOUND, "Could not find user with ID " + id);
             }
 
             logger.infoLog("Returning User Document with ID " + id + " from the database");
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    userMapper.userDocumentToUser(userDocument.get()),
-                    "Found"
-            );
+            return Util.success(userMapper.userDocumentToUser(userDocument.get()), "Found");
         } catch (Exception e) {
             logger.errorLog("An error occurred while fetching user by ID: " + id + ". Exception: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while processing the request"
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing the request");
         }
     }
 
@@ -70,28 +59,16 @@ public class UserService implements IUserService {
             List<UserDocument> userDocumentList = userRepository.findAllActiveUsersGivenRole(role);
             if (userDocumentList.isEmpty()) {
                 logger.infoLog("User Document with role " + role + " could not be found in the database");
-                return new ApiResponse<>(
-                        HttpStatus.NOT_FOUND,
-                        null,
-                        "Could not find any records for given role"
-                );
+                return Util.failure(HttpStatus.NOT_FOUND, "Could not find any records for given role");
             }
             List<User> userList = new ArrayList<>();
             userDocumentList.forEach(userDocument -> userList.add(userMapper.userDocumentToUser(userDocument)));
 
             logger.infoLog("Returning all users with role " + role + " from the database");
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    userList,
-                    "Records found for role: " + role
-            );
+            return Util.success(userList, "Records found for role: " + role);
         } catch (Exception e) {
             logger.errorLog("An error occurred while fetching users by role: " + role + ". Exception: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while processing the request"
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing the request");
         }
     }
 
@@ -107,34 +84,18 @@ public class UserService implements IUserService {
             }
             if (savedDocument != null) {
                 logger.errorLog("Could not add a new user as user already exists");
-                return new ApiResponse<>(
-                        HttpStatus.CONFLICT,
-                        null,
-                        "Record already exists"
-                );
+                return Util.failure(HttpStatus.CONFLICT, "Record already exists");
             }
             savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
             if (null == savedDocument.getId()) {
                 logger.errorLog("Could not insert user information with name '" + user.getFirstName() + "' in the database");
-                return new ApiResponse<>(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        null,
-                        "Could not insert user record"
-                );
+                return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Could not insert user record");
             }
             logger.infoLog("Successfully inserted user with name '" + user.getFirstName() + "' into the database");
-            return new ApiResponse<>(
-                    HttpStatus.CREATED,
-                    userMapper.userDocumentToUser(savedDocument),
-                    "Successfully created user with ID: " + savedDocument.getId()
-            );
+            return Util.success(userMapper.userDocumentToUser(savedDocument), "Successfully created user with ID: " + savedDocument.getId());
         } catch (Exception e) {
             logger.errorLog("An error occurred while adding a new user. Exception: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while processing the request"
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing the request");
         }
     }
 
@@ -143,27 +104,15 @@ public class UserService implements IUserService {
         try {
             if (!userRepository.existsById(user.getId())) {
                 logger.errorLog("Could not find user with the ID '" + user.getId() + "' to edit");
-                return new ApiResponse<>(
-                        HttpStatus.NOT_FOUND,
-                        null,
-                        "No records found with given ID: " + user.getId()
-                );
+                return Util.failure(HttpStatus.NOT_FOUND, "No records found with given ID: " + user.getId());
             }
             logger.infoLog("User information was found for ID '" + user.getId() + "'. Editing information");
             UserDocument savedDocument = userRepository.save(userMapper.userDTOToUserDocument(user));
             logger.infoLog("Successfully edited information for user ID '" + user.getId() + "'. Returning updated record.");
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    userMapper.userDocumentToUser(savedDocument),
-                    "Successfully edited record with ID: " + savedDocument.getId()
-            );
+            return Util.success(userMapper.userDocumentToUser(savedDocument), "Successfully edited record with ID: " + savedDocument.getId());
         } catch (Exception e) {
             logger.errorLog("An error occurred while editing user details for ID: " + user.getId() + ". Exception: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while processing the request"
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing the request");
         }
     }
 
@@ -173,11 +122,7 @@ public class UserService implements IUserService {
             List<UserDocument> userDocumentList = userRepository.findAllUsersGivenRole("STUDENT");
             if (userDocumentList.isEmpty()) {
                 logger.infoLog("Could not retrieve student records from the database");
-                return new ApiResponse<>(
-                        HttpStatus.NOT_FOUND,
-                        null,
-                        "Could not find any records for given role"
-                );
+                return Util.failure(HttpStatus.NOT_FOUND, "Could not find any records for given role");
             }
 
             List<User> studentsPendingDeletion = new ArrayList<>();
@@ -192,21 +137,12 @@ public class UserService implements IUserService {
             });
             userRepository.saveAll(userDocumentList);
             logger.infoLog("Updated grades for " + userDocumentList.size() + " students.");
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    studentsPendingDeletion,
-                    "Student grade levels updated successfully"
-            );
+            return Util.success(studentsPendingDeletion, "Student grade levels updated successfully");
         } catch (Exception e) {
             logger.errorLog("An error occurred while updating school year. Exception: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while processing the request"
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing the request");
         }
     }
 
 
 }
-

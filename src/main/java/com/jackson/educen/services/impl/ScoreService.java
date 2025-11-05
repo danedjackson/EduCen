@@ -11,6 +11,7 @@ import com.jackson.educen.repositories.IScoreRepository;
 import com.jackson.educen.repositories.IUserRepository;
 import com.jackson.educen.services.ILogger;
 import com.jackson.educen.services.IScoreService;
+import com.jackson.educen.utils.Util;
 import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,66 +36,36 @@ public class ScoreService implements IScoreService {
     public ApiResponse<List<Score>> getAllGradeSubjectScores(String id, String grade, String subject) {
         List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenIdGradeSubject(id, grade, subject);
         if(scoreDocuments.isEmpty()) {
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "No scores were found for student ID: " + id
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "No scores were found for student ID: " + id);
         }
         List<Score> scores = new ArrayList<>();
-        scoreDocuments.forEach(score -> {
-            scores.add(scoreMapper.scoreDocumentToScore(score));
-        });
+        scoreDocuments.forEach(score -> scores.add(scoreMapper.scoreDocumentToScore(score)));
 
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                scores,
-                "Scores for student ID: " + id
-        );
+        return Util.success(scores, "Scores for student ID: " + id);
     }
 
     @Override
     public ApiResponse<List<Score>> getAllGradeScores(String id, String grade) {
         List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenIdGrade(id, grade);
         if(scoreDocuments.isEmpty()) {
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "No scores were found for student ID: " + id
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "No scores were found for student ID: " + id);
         }
         List<Score> scores = new ArrayList<>();
-        scoreDocuments.forEach(score -> {
-            scores.add(scoreMapper.scoreDocumentToScore(score));
-        });
+        scoreDocuments.forEach(score -> scores.add(scoreMapper.scoreDocumentToScore(score)));
 
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                scores,
-                "Scores for student ID: " + id
-        );
+        return Util.success(scores, "Scores for student ID: " + id);
     }
 
     @Override
     public ApiResponse<List<Score>> getAllScores(String id) {
         List<ScoreDocument> scoreDocuments = scoreRepository.findAllStudentScores(id);
         if(scoreDocuments.isEmpty()) {
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "No scores were found for student ID: " + id
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "No scores were found for student ID: " + id);
         }
         List<Score> scores = new ArrayList<>();
-        scoreDocuments.forEach(score -> {
-            scores.add(scoreMapper.scoreDocumentToScore(score));
-        });
+        scoreDocuments.forEach(score -> scores.add(scoreMapper.scoreDocumentToScore(score)));
 
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                scores,
-                "Scores for student ID: " + id
-        );
+        return Util.success(scores, "Scores for student ID: " + id);
     }
 
     @Override
@@ -102,111 +73,58 @@ public class ScoreService implements IScoreService {
         try {
             if (null == scoreDTO.getStudentId()) {
                 logger.errorLog("Could not add record to database. Request is null");
-                return new ApiResponse<>(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        null,
-                        "Cannot save score with no data"
-                );
+                return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Cannot save score with no data");
             }
             ScoreDocument savedDocument = scoreRepository.save(scoreMapper.scoreRequestToScoreDocument(scoreDTO));
             if (null == savedDocument.getId()) {
                 logger.errorLog("Could not add user to database. Saved document ID is null");
-                return new ApiResponse<>(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        null,
-                        "Something went wrong attempting to add student score to the database"
-                );
+                return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong attempting to add student score to the database");
             }
             logger.infoLog("Successfully added user with id '" + savedDocument.getId() + "' to database");
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    scoreMapper.scoreDocumentToScore(savedDocument),
-                    "Successfully stored student score"
-            );
+            return Util.success(scoreMapper.scoreDocumentToScore(savedDocument), "Successfully stored student score");
         } catch (Exception e) {
-            // Handle the exception
             logger.errorLog("Could not insert student score data: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while adding student score: " + e.getMessage()
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while adding student score: " + e.getMessage());
         }
     }
 
     @Override
     public ApiResponse<List<UserScoreDTO>> getAllStudentScores() {
         try {
-            // Grab all scores
             List<ScoreDocument> scoreDocuments = scoreRepository.findAll();
             Set<String> studentIds = new HashSet<>();
+            scoreDocuments.forEach(scoreDocument -> studentIds.add(scoreDocument.getStudentId()));
 
-            // Populating the list of student IDs with scores
-            scoreDocuments.forEach(scoreDocument -> {
-                studentIds.add(scoreDocument.getStudentId());
-            });
-
-            // Grabbing user documents that are associated to scores
             List<UserDocument> userDocuments = userRepository.findAllById(studentIds);
 
             List<UserScoreDTO> userScore = new ArrayList<>();
-            // Populating the user-score relationship object
-            scoreDocuments.forEach(scoreDocument -> {
-                userScore.add(scoreMapper.scoreUserDocumentsToUserScoreDTO(scoreDocument, userDocuments));
-            });
+            scoreDocuments.forEach(scoreDocument -> userScore.add(scoreMapper.scoreUserDocumentsToUserScoreDTO(scoreDocument, userDocuments)));
 
             logger.infoLog("Successfully built UserScoreDTO Object and returning");
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    userScore,
-                    "Successfully fetch User-Score data"
-            );
+            return Util.success(userScore, "Successfully fetch User-Score data");
         } catch (Exception e) {
-            // Handle the exception
             logger.errorLog("Could not fetch data to populate userScoreDTO: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while fetching User-Score data: " + e.getMessage()
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while fetching User-Score data: " + e.getMessage());
         }
     }
 
     @Override
     public ApiResponse<List<UserScoreDTO>> getAllStudentScoresByGrade(String grade) {
         try {
-            // Grab all scores for a provided grade level
             List<ScoreDocument> scoreDocuments = scoreRepository.findAllScoresGivenGrade(grade);
             Set<String> studentIds = new HashSet<>();
+            scoreDocuments.forEach(scoreDocument -> studentIds.add(scoreDocument.getStudentId()));
 
-            // Populating the list of student IDs associated with scores
-            scoreDocuments.forEach(scoreDocument -> {
-                studentIds.add(scoreDocument.getStudentId());
-            });
-
-            // Grabbing user documents that are associated to scores
             List<UserDocument> userDocuments = userRepository.findAllById(studentIds);
 
             List<UserScoreDTO> userScore = new ArrayList<>();
-            // Populating the user-score relationship object
-            scoreDocuments.forEach(scoreDocument -> {
-                userScore.add(scoreMapper.scoreUserDocumentsToUserScoreDTO(scoreDocument, userDocuments));
-            });
+            scoreDocuments.forEach(scoreDocument -> userScore.add(scoreMapper.scoreUserDocumentsToUserScoreDTO(scoreDocument, userDocuments)));
 
             logger.infoLog("Successfully built UserScoreDTO Object and returning");
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    userScore,
-                    "Successfully fetch User-Score data"
-            );
+            return Util.success(userScore, "Successfully fetch User-Score data");
         } catch (Exception e) {
-            // Handle the exception
             logger.errorLog("Could not fetch data to populate userScoreDTO: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "An error occurred while fetching User-Score data: " + e.getMessage()
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while fetching User-Score data: " + e.getMessage());
         }
     }
 
@@ -215,38 +133,20 @@ public class ScoreService implements IScoreService {
         try {
             if (scoreId.isEmpty()) {
                 logger.errorLog("Could not find score ID to be deleted");
-                return new ApiResponse<>(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        null,
-                        "No ID provided for removal"
-                );
+                return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "No ID provided for removal");
             }
-            // Should delete record
             logger.infoLog("Deleting score record with ID (" + scoreId +")");
             scoreRepository.deleteScoreById(scoreId);
 
-            // Check if record is deleted
             if(scoreRepository.findScoreById(new ObjectId(scoreId)).isPresent()) {
                 logger.errorLog("Score record was still found after deletion.");
-                return new ApiResponse<>(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        null,
-                        "Failed to delete score record with ID: " + scoreId
-                );
+                return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete score record with ID: " + scoreId);
             }
             logger.infoLog("Successfully deleted record with ID: " +scoreId);
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    true,
-                    "Successfully deleted record with ID: " + scoreId
-            );
+            return Util.success(true, "Successfully deleted record with ID: " + scoreId);
         } catch (Exception e) {
             logger.errorLog("Something went wrong attempting to delete score record with ID (" + scoreId + "): " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "Something went wrong while deleting score record with ID: " + scoreId
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong while deleting score record with ID: " + scoreId);
         }
     }
 
@@ -255,45 +155,27 @@ public class ScoreService implements IScoreService {
             Optional<ScoreDocument> scoreDocument = scoreRepository.findScoreById(new ObjectId(scoreDTO.getScoreId()));
             if(scoreDocument.isEmpty()) {
                 logger.errorLog("Could not find score record with ID: " + scoreDTO.getScoreId());
-                return new ApiResponse<>(
-                        HttpStatus.NOT_FOUND,
-                        null,
-                        "Could not find score to edit"
-                );
+                return Util.failure(HttpStatus.NOT_FOUND, "Could not find score to edit");
             }
             ScoreDTO fetchedScore = scoreMapper.scoreDocumentToScoreDTO(scoreDocument.get());
-            // Setting timestamp to fetched data for comparison
-            // TODO: Allow teachers to insert the date the score was recorded.
             fetchedScore.setDateRecorded(scoreDTO.getDateRecorded());
 
             if(Objects.equals(scoreDTO, fetchedScore)) {
                 logger.warnLog("Both objects are equal. No editing of score was done");
-                return new ApiResponse<>(
-                        HttpStatus.NOT_MODIFIED,
-                        null,
-                        "No changes detected."
-                );
+                return Util.failure(HttpStatus.NOT_MODIFIED, "No changes detected.");
             }
 
             ScoreDocument savedScoreDocument = scoreRepository.save(scoreMapper.scoreRequestToScoreDocument(scoreDTO));
             if(null == savedScoreDocument.getId()) {
                 logger.errorLog("Score document was empty after saving");
-                return new ApiResponse<>(
-                        HttpStatus.NOT_MODIFIED,
-                        null,
-                        "Could not save edited record."
-                );
+                return Util.failure(HttpStatus.NOT_MODIFIED, "Could not save edited record.");
             }
             logger.infoLog("Successfully updated score record with ID: " + savedScoreDocument.getId());
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    scoreMapper.scoreDocumentToScoreDTO(savedScoreDocument),
-                    "Successfully updated score record"
-            );
+            return Util.success(scoreMapper.scoreDocumentToScoreDTO(savedScoreDocument), "Successfully updated score record");
         } catch(Exception e) {
-            logger.errorLog("");
+            logger.errorLog("An error occurred updating score: " + e.getMessage());
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while editing score: " + e.getMessage());
         }
-        return null;
     }
 
 }

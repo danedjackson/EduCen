@@ -2,6 +2,7 @@ package com.jackson.educen.services;
 
 import com.jackson.educen.documents.FileDocument;
 import com.jackson.educen.models.ApiResponse;
+import com.jackson.educen.models.dto.FileDownload;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.models.dto.User.UserFile;
@@ -11,8 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface ITeacherService {
-    public ApiResponse<FileDocument> uploadFile (MultipartFile file);
-    public ApiResponse<FileDocument> getLessonPlan(String id);
+    public ApiResponse<FileDocument> uploadFile (MultipartFile file, String subject);
+    public ApiResponse<FileDownload> getLessonPlan(String id);
     public ApiResponse<List<FileDocument>> getLessonPlans(String id);
     public ApiResponse<List<FileDocument>> getTeacherLessonPlans(String id);
     public ApiResponse<List<UserFile>> getAllTeacherPlans();

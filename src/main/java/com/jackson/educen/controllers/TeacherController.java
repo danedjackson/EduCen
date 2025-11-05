@@ -3,6 +3,7 @@ package com.jackson.educen.controllers;
 import com.jackson.educen.documents.FileDocument;
 import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.models.Role;
+import com.jackson.educen.models.dto.FileDownload;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.models.dto.User.UserFile;
@@ -25,13 +26,13 @@ public class TeacherController {
         this.teacherService = teacherService;
         this.logger = logger;
     }
-    @PostMapping("/upload")
-    public ApiResponse<FileDocument> uploadFile(@RequestParam("file") MultipartFile file) {
-        return teacherService.uploadFile(file);
+    @PostMapping("/upload/{subject}")
+    public ApiResponse<FileDocument> uploadFile(@RequestParam("file") MultipartFile file, @PathVariable String subject) {
+        return teacherService.uploadFile(file, subject);
     }
 
     @GetMapping("/plan/{planId}")
-    public ApiResponse<FileDocument> getFile(@PathVariable String planId) {
+    public ApiResponse<FileDownload> getFile(@PathVariable String planId) {
         return teacherService.getLessonPlan(planId);
     }
 

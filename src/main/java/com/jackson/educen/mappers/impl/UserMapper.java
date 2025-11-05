@@ -32,7 +32,7 @@ public class UserMapper implements IUserMapper {
         user.setGrade(userDocument.getGrade());
 
         if(null != user.getDateOfBirth()) {
-            user.setAge(new Util().getAge(LocalDate.now(), user.getDateOfBirth()));
+            user.setAge(Util.getAge(LocalDate.now(), user.getDateOfBirth()));
         }
 
         return user;

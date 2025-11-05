@@ -1,3 +1,4 @@
+// java
 package com.jackson.educen.services.impl;
 
 import com.jackson.educen.documents.UserDocument;
@@ -7,6 +8,7 @@ import com.jackson.educen.models.ApiResponse;
 import com.jackson.educen.documents.FileDocument;
 import com.jackson.educen.models.Role;
 import com.jackson.educen.models.dto.File;
+import com.jackson.educen.models.dto.FileDownload;
 import com.jackson.educen.models.dto.User.User;
 import com.jackson.educen.models.dto.User.UserDTO;
 import com.jackson.educen.models.dto.User.UserFile;
@@ -22,9 +24,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import com.jackson.educen.utils.Util;
 
 @Service
 public class TeacherService implements ITeacherService {
@@ -45,126 +56,103 @@ public class TeacherService implements ITeacherService {
         this.logger = logger;
     }
     @Override
-    public ApiResponse<FileDocument> uploadFile(MultipartFile file) {
-        String teacherId = file.getOriginalFilename();
-        if (teacherId == null || teacherId.isEmpty()) {
-            logger.infoLog("Invalid file name for file provided");
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "Could not determine file name."
-            );
+    public ApiResponse<FileDocument> uploadFile(MultipartFile file, String subject) {
+        // 1️⃣ Extract teacher ID from the uploaded file's name
+        String teacherId = extractTeacherId(file);
+        if (teacherId == null) {
+            return Util.failure(HttpStatus.NOT_FOUND, "Could not determine file name.");
         }
-        Optional<UserDocument> document = userRepository.findById(cleanFileName(teacherId));
-        if(document.isEmpty()){
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "Could not find teacher information."
-            );
+
+        // 2️⃣ Fetch teacher information from the database
+        UserDocument teacher = userRepository.findById(cleanFileName(teacherId))
+                .orElse(null);
+        if (teacher == null) {
+            return Util.failure(HttpStatus.NOT_FOUND, "Could not find teacher information.");
         }
-        UserDocument teacherDetails = document.get();
-        FileDocument fileDocument = new FileDocument();
+
+        // 3️⃣ Validate and determine the file's content type
+        String contentType = resolveContentType(file);
+        if (contentType == null) {
+            return Util.failure(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                    "Only PDF (.pdf) and Word (.doc, .docx) files are accepted.");
+        }
+
         try {
-            fileDocument.setDateUploaded(LocalDate.now());
-            fileDocument.setTitle(fileDocument.getDateUploaded()
-                    + "_"
-                    + teacherDetails.getFirstName()
-                    + "_"
-                    + teacherDetails.getLastName()
-                    + "_"
-                    + teacherDetails.getGrade()
-            );
-            fileDocument.setTeacherId(teacherDetails.getId());
-            fileDocument.setDocument(new Binary(BsonBinarySubType.BINARY, file.getBytes()));
+            // 4️⃣ Save the file to disk and store its metadata in the database
+            FileDocument savedFile = storeFile(file, teacher, subject, contentType);
 
-            // Storing the file to db
-            fileDocument = documentRepository.save(fileDocument);
+            logger.infoLog("Stored document for teacher ID: " + teacher.getId() +
+                    " at path: " + savedFile.getFilePath());
 
-        } catch(IOException e) {
-            logger.errorLog("Could not get bytes from file: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "Something went wrong while setting Document before storage."
-            );
-        } catch(Exception e) {
-            logger.errorLog("Something went wrong saving file: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "Something went wrong while attempting to save the file."
-            );
+            // 5️⃣ Return a success response
+            return Util.success(savedFile,
+                    "Successfully stored document to server and saved metadata to database");
+
+        } catch (IOException e) {
+            logger.errorLog("Failed saving file to disk: " + e.getMessage());
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Error saving file to server storage.");
+        } catch (Exception e) {
+            logger.errorLog("Failed saving file metadata: " + e.getMessage());
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Error saving file record to database.");
         }
-        logger.infoLog("Stored document with ID: " + teacherDetails.getId());
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                fileDocument,
-                "Successfully stored document to database"
-        );
     }
 
     @Override
-    public ApiResponse<FileDocument> getLessonPlan(String id) {
+    public ApiResponse<FileDownload> getLessonPlan(String id) {
         Optional<FileDocument> document = documentRepository.findById(id);
-        if(document.isEmpty()) {
+        if (document.isEmpty()) {
             logger.errorLog("Could not retrieve document with ID: " + id);
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "Unable to retrieve document"
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "Unable to retrieve document");
         }
-        FileDocument fileDocument = document.get();
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                fileDocument,
-                "Retrieved document"
-        );
-    }
 
+        FileDocument fileDocument = document.get();
+        String filePath = fileDocument.getFilePath();
+        if (filePath == null || filePath.isBlank()) {
+            logger.errorLog("File path missing for document ID: " + id);
+            return Util.failure(HttpStatus.NOT_FOUND, "File not found on server");
+        }
+
+        Path path = Paths.get(filePath);
+        if (!Files.exists(path)) {
+            logger.errorLog("File not found on disk for document ID: " + id + " path: " + filePath);
+            return Util.failure(HttpStatus.NOT_FOUND, "File not found on server");
+        }
+
+        try {
+            byte[] content = Files.readAllBytes(path);
+            String fileName = path.getFileName().toString();
+            FileDownload download = new FileDownload(content, fileDocument.getContentType(), fileName);
+            return Util.success(download, "Retrieved document");
+        } catch (IOException e) {
+            logger.errorLog("Failed to read file from disk for document ID: " + id + ": " + e.getMessage());
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Error reading file from server");
+        }
+    }
     @Override
     public ApiResponse<List<FileDocument>> getLessonPlans(String id) {
         Optional<FileDocument> documents = documentRepository.findById(id);
         if(documents.isEmpty()) {
             logger.errorLog("Could not retrieve document with ID: " + id);
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "Unable to retrieve document"
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "Unable to retrieve document");
         }
         List<FileDocument> lessonPlans = documents
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
 
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                lessonPlans,
-                "Retrieved document"
-        );
+        return Util.success(lessonPlans, "Retrieved document");
     }
 
     @Override
     public ApiResponse<List<FileDocument>> getTeacherLessonPlans(String id) {
         Optional<FileDocument> documents = documentRepository.findAllByTeacherId(id);
         if(documents.isEmpty()){
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "Could not find teacher lesson plan information."
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "No lesson plans found for the given teacher ID.");
         }
 
         List<FileDocument> lessonPlans = documents
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
-
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                lessonPlans,
-                "Retrieved document"
-        );
+        return Util.success(lessonPlans, "Retrieved document");
     }
 
     /*
@@ -181,20 +169,12 @@ public class TeacherService implements ITeacherService {
         documents.forEach(document -> teacherIds.add(document.getTeacherId()));
 
         if(teacherIds.isEmpty()){
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "No documents with teacher IDs found"
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "No documents with teacher IDs found");
         }
         // Find all teachers who have uploaded documents
         List<UserDocument> teachersWithDocuments = userRepository.findAllById(teacherIds);
         if(teachersWithDocuments.isEmpty()){
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "No documents found"
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "No documents found");
         }
         List<UserFile> teachers = new ArrayList<>();
 
@@ -217,28 +197,16 @@ public class TeacherService implements ITeacherService {
         }
 
         if(teachers.isEmpty()){
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "No teacher information found"
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "No teacher information found");
         }
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                teachers,
-                "Successfully retrieved teachers with uploaded lesson plans"
-        );
+        return Util.success(teachers, "Successfully retrieved teachers with uploaded lesson plans");
     }
 
     @Override
     public ApiResponse<String> updateFile(FileDocument fileInfo) {
         Optional<FileDocument> document = documentRepository.findById(cleanFileName(fileInfo.getId()));
         if(document.isEmpty()){
-            return new ApiResponse<>(
-                    HttpStatus.NOT_FOUND,
-                    null,
-                    "Could not find file information."
-            );
+            return Util.failure(HttpStatus.NOT_FOUND, "Could not find file information.");
         }
         FileDocument fileDocument = document.get();
         fileDocument.setComments(fileInfo.getComments());
@@ -247,11 +215,7 @@ public class TeacherService implements ITeacherService {
 
         documentRepository.save(fileDocument);
 
-        return new ApiResponse<>(
-                HttpStatus.OK,
-                fileDocument.getId(),
-                "Updated record for document"
-        );
+        return Util.success(fileDocument.getId(), "Updated record for document");
     }
 
     @Override
@@ -275,18 +239,10 @@ public class TeacherService implements ITeacherService {
 
             documentRepository.saveAll(plansToSave);
 
-            return new ApiResponse<>(
-                    HttpStatus.OK,
-                    plansToSave,
-                    "Updated record for document"
-            );
+            return Util.success(plansToSave, "Updated record for document");
         } catch(Exception e){
             logger.errorLog("An error occurred updating comments for lesson plans: " + e.getMessage());
-            return new ApiResponse<>(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    null,
-                    "Failed to update lesson plan comments"
-            );
+            return Util.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update lesson plan comments");
         }
     }
     @Override
@@ -320,4 +276,124 @@ public class TeacherService implements ITeacherService {
             return fileName;
         }
     }
+
+    // Extract the teacher ID from the file name (used as identifier)
+    private String extractTeacherId(MultipartFile file) {
+        String name = file.getOriginalFilename();
+        if (name == null || name.isBlank()) {
+            logger.infoLog("Invalid file name for file provided");
+            return null;
+        }
+        return name;
+    }
+
+    // Validate file type by MIME type or extension (only allow PDF and Word docs)
+    private String resolveContentType(MultipartFile file) {
+        Set<String> allowedTypes = Set.of(
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        );
+
+        String contentType = file.getContentType();
+        String lowerName = Objects.requireNonNull(file.getOriginalFilename()).toLowerCase(Locale.ROOT);
+
+        boolean mimeAllowed = contentType != null && allowedTypes.contains(contentType);
+        boolean extAllowed = lowerName.endsWith(".pdf") || lowerName.endsWith(".doc") || lowerName.endsWith(".docx");
+
+        if (!mimeAllowed && !extAllowed) {
+            logger.infoLog("Rejected file due to invalid type: " + contentType + " / " + lowerName);
+            return null;
+        }
+
+        // Infer type from extension if MIME type is missing or unrecognized
+        if (contentType == null || !allowedTypes.contains(contentType)) {
+            if (lowerName.endsWith(".pdf")) return "application/pdf";
+            if (lowerName.endsWith(".doc")) return "application/msword";
+            if (lowerName.endsWith(".docx"))
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        }
+
+        return contentType;
+    }
+
+    // Save the file to disk and create a FileDocument entry in the database
+    private FileDocument storeFile(MultipartFile file, UserDocument teacher,
+                                   String subject, String contentType) throws IOException {
+        FileDocument doc = new FileDocument();
+
+        // Set basic file metadata
+        doc.setDateUploaded(LocalDate.now());
+        doc.setTeacherId(teacher.getId());
+        doc.setSubject(subject != null && !subject.isBlank() ? subject.trim() : null);
+        doc.setContentType(contentType);
+
+        // Build a clean, readable title for the file
+        String title = buildTitle(doc, teacher);
+        doc.setTitle(title);
+
+        // Create the teacher’s folder if it doesn’t exist
+        Path baseDir = Paths.get(System.getProperty("user.dir"), "lesson_plans", teacher.getId());
+        Files.createDirectories(baseDir);
+
+        // Generate a unique file path (add suffix if needed)
+        Path target = buildUniqueFilePath(baseDir, title, file.getOriginalFilename());
+
+        // Copy uploaded file to the target location
+        try (InputStream in = file.getInputStream()) {
+            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        // Save the full file path to the database
+        doc.setFilePath(target.toAbsolutePath().toString());
+        return documentRepository.save(doc);
+    }
+
+    // Build a readable file title based on teacher info and subject
+    private String buildTitle(FileDocument doc, UserDocument teacher) {
+        String base = String.join("_",
+                doc.getDateUploaded().toString(),
+                teacher.getFirstName(),
+                teacher.getLastName(),
+                teacher.getGrade()
+        );
+        if (doc.getSubject() != null) {
+            base += "_" + doc.getSubject().replaceAll("\\s+", "_");
+        }
+        return base;
+    }
+
+    // Create a unique filename — add numeric suffix if a file already exists
+    private Path buildUniqueFilePath(Path baseDir, String baseTitle, String originalName) throws IOException {
+        String safeBase = baseTitle.replaceAll("[^a-zA-Z0-9_\\-.]", "_");
+        String candidate = safeBase + "_" + Paths.get(originalName).getFileName();
+        Path target = baseDir.resolve(candidate);
+
+        if (!Files.exists(target)) return target;
+
+        // Find the next available numeric suffix
+        int suffix = nextSuffix(baseDir, safeBase);
+        return baseDir.resolve(safeBase + "-" + suffix + "_" + originalName);
+    }
+
+    // Find the next numeric suffix for duplicate filenames
+    private int nextSuffix(Path dir, String baseName) throws IOException {
+        int max = 0;
+        try (Stream<Path> stream = Files.list(dir)) {
+            for (Path p : (Iterable<Path>) stream::iterator) {
+                String fname = p.getFileName().toString();
+                if (!fname.startsWith(baseName + "_") && !fname.startsWith(baseName + "-")) continue;
+
+                Matcher m = Pattern.compile(baseName + "-(\\d+)_").matcher(fname);
+                if (m.find()) {
+                    max = Math.max(max, Integer.parseInt(m.group(1)));
+                } else {
+                    max = Math.max(max, 1);
+                }
+            }
+        }
+        return max + 1;
+    }
+
+
 }
